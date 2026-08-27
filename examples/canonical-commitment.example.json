@@ -1,0 +1,99 @@
+{
+  "profile": "mandatepatch/profile/v1",
+  "checkout_id": "chk:2026-W35-northside-0417",
+  "attempt_nonce": "Zk9tQ1hyVGJ3TDJfNmhOcEE",
+  "created_at": "2026-08-27T14:02:11Z",
+  "seller": {
+    "seller_id": "seller:northside-market",
+    "legal_name": "Northside Market LLC",
+    "merchant_category_code": "5411",
+    "domain": "northsidemarket.example"
+  },
+  "currency": "USD",
+  "currency_minor_unit_exponent": 2,
+  "line_items": [
+    {
+      "line_id": "li-001",
+      "sku": "SKU-BREAD-SOURDOUGH",
+      "variant_id": null,
+      "title": "Sourdough loaf, 700 g",
+      "quantity": 2,
+      "unit_amount_minor": 549,
+      "total_amount_minor": 1098,
+      "fulfillment_source": {
+        "kind": "ship-from-store",
+        "location_id": "store:northside-04",
+        "marketplace_seller_id": null
+      }
+    },
+    {
+      "line_id": "li-002",
+      "sku": "SKU-COLA-CANS",
+      "variant_id": "24-pack",
+      "title": "Fizzwater Cola, 24-pack cans",
+      "quantity": 1,
+      "unit_amount_minor": 1349,
+      "total_amount_minor": 1349,
+      "fulfillment_source": {
+        "kind": "ship-from-store",
+        "location_id": "store:northside-04",
+        "marketplace_seller_id": null
+      }
+    },
+    {
+      "line_id": "li-003",
+      "sku": "SKU-MILK-WHOLE",
+      "variant_id": "1-gallon",
+      "title": "Whole milk, 1 gallon",
+      "quantity": 1,
+      "unit_amount_minor": 429,
+      "total_amount_minor": 429,
+      "fulfillment_source": {
+        "kind": "ship-from-store",
+        "location_id": "store:northside-04",
+        "marketplace_seller_id": null
+      }
+    }
+  ],
+  "tax": {
+    "total_amount_minor": 209,
+    "inclusive": false,
+    "components": [
+      {
+        "kind": "sales",
+        "jurisdiction": "US-NY",
+        "rate_basis_points": 725,
+        "amount_minor": 209
+      }
+    ]
+  },
+  "shipping": {
+    "amount_minor": 499,
+    "method": "same-day-delivery",
+    "destination": {
+      "country": "US",
+      "region": "NY",
+      "postal_code": "10025",
+      "address_commitment": "sha-256:g4PULE6U1LPNwfpQ8raSdIpSGzHmw6ejdqmT8KdxDGM"
+    }
+  },
+  "totals": {
+    "subtotal_minor": 2876,
+    "tax_minor": 209,
+    "shipping_minor": 499,
+    "discount_minor": 0,
+    "grand_total_minor": 3584
+  },
+  "fulfillment_source": {
+    "kind": "ship-from-store",
+    "location_id": "store:northside-04",
+    "marketplace_seller_id": null
+  },
+  "recurrence": null,
+  "substitution_policy": {
+    "mode": "equivalent-only",
+    "allowed_substitutions": [],
+    "max_unit_amount_delta_minor": 100,
+    "notify_principal": true
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "schema_version": "mandatepatch/divergence-record/v1",
+  "record_id": "dr:2026-W35-northside-0417-1",
+  "mandate_family_id": "fam:weekly-groceries-8f21",
+  "mandate_version": 1,
+  "base_mandate_hash": "sha-256:H8h7wRzfADzgLqv3t8mSI-nlZ1mAJ3hosUETgucrT4U",
+  "checkout_commitment": "sha-256:kEHS9w4GR7KawjUuVmYWbH2Ng3cVWyaVFEyoSf9aA80",
+  "evaluated_at": "2026-08-27T14:02:13Z",
+  "deployment_variant": {
+    "kind": "wallet-side",
+    "enclave_attestation": null
+  },
+  "scoring_stack": {
+    "stack_measurement": "sha-256:CRkLGqIXjw7j6GTQG-BuNEdp_dQBPQrZ24pMptC5L7c",
+    "stack_version": 3
+  },
+  "threshold_applied_micro": 180000,
+  "category_id_applied": "grocery.beverage.packaged",
+  "aggregation": "per-line-item-worst-case",
+  "cart_level_score_commitment": "sha-256:XQ96xXox0_ghp-VTjEI-jwejEQyERPB-puzIJaZGTCo",
+  "line_item_scores": [
+    {
+      "line_id": "li-001",
+      "score_commitment": "sha-256:q8iR4gxQsHrbr8iH2qmwGNMlfLQpSYSBU1z6uTc-BCE",
+      "exceeded_threshold": false
+    },
+    {
+      "line_id": "li-002",
+      "score_commitment": "sha-256:ixDBmB94_JWa_JGNhXMXIImm4fZ9bmXv9BiuPEAxawU",
+      "exceeded_threshold": true
+    },
+    {
+      "line_id": "li-003",
+      "score_commitment": "sha-256:udgoEI2_2eSKhvHcjuzFqmtdD-1f90UQGpG_2sR6v6s",
+      "exceeded_threshold": false
+    }
+  ],
+  "score_commitment": "sha-256:SIR3yHSVFsdB-XSoorQIgyGFD2wnTZep_4yI3y_yTXs",
+  "encrypted_score": {
+    "ciphertext": "PLACEHOLDER-ciphertext-encrypted-to-principal-and-issuer",
+    "recipients": [
+      "principal",
+      "issuer"
+    ],
+    "encryption_alg": "ECDH-ES+A256GCM"
+  },
+  "outcome": "suspend",
+  "reason_codes": [
+    "SEMANTIC_DIVERGENCE"
+  ],
+  "flagged_line_ids": [
+    "li-002"
+  ],
+  "failing_predicate_ids": [
+    "pred-semantic-cart"
+  ],
+  "cumulative_divergence_after_micro": 310000,
+  "attempt_index": 1,
+  "previous_record_hash": null,
+  "signature": {
+    "kid": "gxOM1nVlDDCzG-5JiPbjN_JcK9hqQVaZnjPwbOL1Gic",
+    "alg": "ES256",
+    "signed_at": "2026-08-27T14:02:13Z",
+    "signer": "wallet.example",
+    "signer_role": "wallet",
+    "domain_separation": {
+      "audience": "acquirer:northside-psp",
+      "relying_party": "seller:northside-market",
+      "mandate_family_id": "fam:weekly-groceries-8f21",
+      "mandate_version": 1,
+      "rail": "card:visa",
+      "purpose": "mandatepatch/divergence-record"
+    },
+    "ds_tag": "ByGcuhkTAl2CWgrs3fRYYuPFDnPtLJQG5VZmvzHTtmc",
+    "anchor": {
+      "log_id": "log:northside-wallet-transparency",
+      "epoch": 1,
+      "inclusion_proof": [
+        "WmQJvrPyJ0ikr0LUbOpr2ggnIF60i3ZaCfVd5Sp7mQM",
+        "qu6Ns92sw-qVgmOlzIXd3Mg4QafB4oqLaSbosPG4q3o",
+        "_eVGMJ-PDI35VZDNX07D566rWRPvXfuHywFkqUtxakA"
+      ]
+    },
+    "signature": "PLACEHOLDER-not-a-real-signature-divergence-record"
+  }
+}

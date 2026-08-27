@@ -1,0 +1,127 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  schemas:
+    name: schema validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: every schema file is well-formed JSON
+        run: |
+          for f in schemas/*.json examples/*.json; do
+            python3 -c "import json,sys; json.load(open(sys.argv[1], encoding='utf-8'))" "$f"
+            echo "ok  $f"
+          done
+
+      - name: validate examples against schemas (ajv, draft 2020-12)
+        run: bash scripts/validate-examples.sh
+
+      - name: schema conformance, including mutations that must be rejected
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install jsonschema
+          python3 scripts/validate-schemas.py
+
+  typescript:
+    name: typescript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: ts/package.json
+
+      - run: npm install
+        working-directory: ts
+
+      - name: type-check
+        run: npx tsc -p tsconfig.json --noEmit
+        working-directory: ts
+
+      - name: canonicalization vectors
+        run: |
+          npx tsc -p tsconfig.json
+          node dist/test/run-vectors.js
+        working-directory: ts
+
+      - name: emit computed output for the parity job
+        run: node ts/dist/test/run-vectors.js --emit ts-vectors.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ts-vectors
+          path: ts-vectors.json
+
+  python:
+    name: python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: install dev tooling
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install ruff mypy jsonschema
+
+      - name: lint
+        run: ruff check mandatepatch
+        working-directory: python
+
+      - name: type-check
+        run: mypy mandatepatch
+        working-directory: python
+
+      - name: canonicalization vectors
+        run: python3 python/tests/run_vectors.py
+
+      - name: emit computed output for the parity job
+        run: python3 python/tests/run_vectors.py --emit py-vectors.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: py-vectors
+          path: py-vectors.json
+
+  parity:
+    name: byte-identical output
+    needs: [typescript, python]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: ts-vectors
+      - uses: actions/download-artifact@v4
+        with:
+          name: py-vectors
+
+      - name: diff the two ports' canonicalization output
+        run: |
+          if diff -u ts-vectors.json py-vectors.json; then
+            echo "PASS  typescript and python produced byte-identical output"
+            sha256sum ts-vectors.json py-vectors.json
+          else
+            echo "FAIL  ports diverged" >&2
+            exit 1
+          fi

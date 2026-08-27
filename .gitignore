@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.parity/
+.parity-*.json
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+.mypy_cache/
+.ruff_cache/
+.DS_Store

@@ -1,0 +1,56 @@
+{
+  "base_mandate_hash": "sha-256:H8h7wRzfADzgLqv3t8mSI-nlZ1mAJ3hosUETgucrT4U",
+  "patch_sequence": 1,
+  "violations": [
+    {
+      "violated_predicate_id": "pred-semantic-cart",
+      "value_old": {
+        "approved_line_ids": []
+      },
+      "value_new": {
+        "approved_line_ids": [
+          "li-002"
+        ]
+      }
+    }
+  ],
+  "checkout_commitment": "sha-256:kEHS9w4GR7KawjUuVmYWbH2Ng3cVWyaVFEyoSf9aA80",
+  "suspended_state_hash": "sha-256:tles22KJNOctGVKTOJ9TiVAtnxMS3hzLLAzkzGFo2Bw",
+  "divergence_record_ref": "sha-256:9y6pxW56mDNG8LtxsUvn1rZwbvebeh1BThusQneFIkA",
+  "nonce": "n-4f2b9c1e7a6d0835",
+  "issued_at": "2026-08-27T14:06:40Z",
+  "expiry": "2026-08-27T14:21:40Z",
+  "render_state_hash": "sha-256:UBJKQxcaaC4-7t-rMr38HZBGVDxDn3BYyYhE57guSqQ",
+  "attestation_tier": "os-composited",
+  "human_signature": {
+    "kid": "o5HkRuu8EEdWHQRC9sWID3UPzZ_Y5eFLMRbFOrZyr8E",
+    "alg": "ES256",
+    "signed_at": "2026-08-27T14:06:40Z",
+    "authenticator": {
+      "credential_id": "cred:passkey-7a1c",
+      "kind": "platform-authenticator",
+      "device_bound": true,
+      "channel_independent": true
+    },
+    "assurance_profile": "aal2-device-bound-independent-channel",
+    "domain_separation": {
+      "audience": "acquirer:northside-psp",
+      "relying_party": "seller:northside-market",
+      "mandate_family_id": "fam:weekly-groceries-8f21",
+      "mandate_version": 1,
+      "rail": "card:visa",
+      "purpose": "mandatepatch/delta-authorization+resumption"
+    },
+    "ds_tag": "9SXtRjNYZzr_odU3BgJs5OKESQx-MyqheqxHk3rbEcU",
+    "anchor": {
+      "log_id": "log:northside-wallet-transparency",
+      "epoch": 1,
+      "inclusion_proof": [
+        "Yi2Yuq_847luGK5-oMgtnuBmpx-ZsOPPby5NwNmoaBM",
+        "Al_1ohCktZOCOd3Fi2pX8DBrKHSrGSYLLr8mltZNffo",
+        "2Lo3An4cksHJrMdFb8PKyq5NgoQbHGUgVlK3WQqOduk"
+      ]
+    },
+    "signature": "PLACEHOLDER-not-a-real-signature-mandatepatch-seq1"
+  }
+}

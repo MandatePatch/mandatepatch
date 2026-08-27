@@ -1,0 +1,226 @@
+{
+  "schema_version": "mandatepatch/mandate/v1",
+  "canonicalization_profile": "mandatepatch/profile/v1",
+  "binding_profile": "ap2/v0.2",
+  "mandate_family_id": "fam:weekly-groceries-8f21",
+  "mandate_version": 1,
+  "supersedes": null,
+  "epoch": 1,
+  "instruction": {
+    "source_text": "Every week, buy my usual groceries from the usual store - the usual staples, including a twelve-pack of Fizzwater Cola - and keep it under $150.",
+    "source_bytes_hash": "sha-256:_Pf0PrlldWFqP7chmYl8C3VCUYO76qHEolCxrQTDvqI",
+    "machine_interpretation": {
+      "cadence": "weekly",
+      "merchant_allowlist": [
+        "seller:northside-market"
+      ],
+      "amount_cap_minor": 15000,
+      "named_items": [
+        {
+          "sku_family": "SKU-COLA-CANS",
+          "variant_id": "12-pack"
+        }
+      ]
+    },
+    "machine_interpretation_hash": "sha-256:-qonJa9l71c02l8GD--MyUGICMJI_ZxdCmYrs0iqU8Q",
+    "surfaced_conflicts": []
+  },
+  "semantic_gate": {
+    "baseline_commitment": "sha-256:HmB63GKpkmv7XUL20ND-to221LDF2oJRLjUrC9mloE0",
+    "commitment_scheme": "sha-256(E0||salt)",
+    "salt_disclosure_policy": "dispute-only",
+    "scoring_stack": {
+      "stack_measurement": "sha-256:CRkLGqIXjw7j6GTQG-BuNEdp_dQBPQrZ24pMptC5L7c",
+      "stack_version": 3,
+      "model_hash": "sha-256:LOW7RfYWvhjyT2PG3WfyNMR4MoYzL08tT76dP1aH8Wc",
+      "tokenizer_hash": "sha-256:sj_AQIhQ8imLxNvLvupB6U9YdnPynGU-4pBZwnZdNIo",
+      "normalization_rules_hash": "sha-256:S8IF-i9G4oA1ED7km1KOtdqHu6N5IeSlsA0V9ORuh0I",
+      "preprocessing_hash": "sha-256:BTS5jpgpISD03jqMqzdhnUg6yemFDlZRRaf07ZkB24M",
+      "quantization": "int8",
+      "runtime_configuration_hash": "sha-256:eEsD0RtIX1ywnME7Ta1cnSn99_pQCGL3MqMPwtC5VKY"
+    },
+    "threshold_micro": 180000,
+    "category_taxonomy": {
+      "taxonomy_id": "taxonomy:retail-grocery",
+      "taxonomy_version": 2,
+      "categories": [
+        {
+          "category_id": "grocery.staples",
+          "threshold_micro": 220000
+        },
+        {
+          "category_id": "grocery.beverage.packaged",
+          "threshold_micro": 180000
+        }
+      ]
+    },
+    "threshold_selection_rule": "most-conservative-matching-category",
+    "aggregation": "per-line-item-worst-case",
+    "deployment_variant": {
+      "kind": "wallet-side",
+      "enclave_measurement": null
+    },
+    "cumulative_divergence_budget_micro": 1500000,
+    "attempt_budget": 3,
+    "cart_revision_throttle": 2,
+    "agent_visible_outcome_space": [
+      "pass",
+      "suspend"
+    ],
+    "score_disclosure": "encrypted-to-principal-and-issuer"
+  },
+  "predicates": [
+    {
+      "predicate_id": "pred-amount-cap",
+      "kind": "machine-enforceable",
+      "owner": "principal",
+      "patchable": true,
+      "expression": {
+        "op": "lte",
+        "field": "totals.grand_total_minor",
+        "value": 15000
+      },
+      "description": "Total authorized amount must not exceed USD 150.00."
+    },
+    {
+      "predicate_id": "pred-merchant-allowlist",
+      "kind": "machine-enforceable",
+      "owner": "principal",
+      "patchable": true,
+      "expression": {
+        "op": "in",
+        "field": "seller.seller_id",
+        "value": [
+          "seller:northside-market"
+        ]
+      },
+      "description": "Seller must be the usual store."
+    },
+    {
+      "predicate_id": "pred-semantic-cart",
+      "kind": "semantic",
+      "owner": "principal",
+      "patchable": true,
+      "expression": {
+        "op": "semantic-divergence-within-threshold",
+        "baseline": "semantic_gate.baseline_commitment",
+        "aggregation": "per-line-item-worst-case"
+      },
+      "description": "Each line item must remain within the mandate's semantic distance threshold of the committed instruction baseline."
+    },
+    {
+      "predicate_id": "pred-cumulative-scope-budget",
+      "kind": "cumulative-budget",
+      "owner": "principal",
+      "patchable": true,
+      "expression": {
+        "op": "within-multidimensional-budget",
+        "axes": [
+          "semantic_distance_micro",
+          "monetary_delta_minor",
+          "merchant_set_delta"
+        ]
+      },
+      "description": "Accumulated patch scope must remain within the per-axis budget."
+    },
+    {
+      "predicate_id": "pred-issuer-category-restriction",
+      "kind": "machine-enforceable",
+      "owner": "issuer",
+      "patchable": false,
+      "expression": {
+        "op": "not-in",
+        "field": "seller.merchant_category_code",
+        "value": [
+          "7995"
+        ]
+      },
+      "description": "Issuer-pinned category restriction. Unpatchable by the principal: a MandatePatch cannot make a transaction permissible that a third party's independent policy prohibits."
+    },
+    {
+      "predicate_id": "pred-freshness",
+      "kind": "freshness",
+      "owner": "issuer",
+      "patchable": false,
+      "expression": {
+        "op": "head-at-epoch-within",
+        "delta_seconds": 30
+      },
+      "description": "Mandate version must have been family head at an epoch not older than the staleness bound, checked at authorization and re-checked at capture."
+    }
+  ],
+  "patch_chain_governance": {
+    "patch_of_patch_permitted": false,
+    "max_patches_before_forced_supersession": 3,
+    "cooling_off_seconds": 3600,
+    "full_context_redisplay_required": true,
+    "base_locked_while_patch_pending": true,
+    "cumulative_scope_budget": {
+      "semantic_distance_micro": 750000,
+      "monetary_delta_minor": 5000,
+      "merchant_set_delta": 0
+    },
+    "settled_patch_derived_spend_counts": true
+  },
+  "freshness": {
+    "staleness_bound_seconds": 30,
+    "revocation_mode": "bounded-staleness",
+    "head_source": "transparency-log",
+    "cosigned_heads_required": true,
+    "evaluation_points": [
+      "authorization",
+      "capture"
+    ]
+  },
+  "consume_authority": {
+    "authority_id": "registry:wallet.example/fam/weekly-groceries-8f21",
+    "kind": "wallet",
+    "linearizable": true
+  },
+  "challenge_policy": {
+    "challenge_ttl_seconds": 900,
+    "expiry_disposition": "void-checkout",
+    "max_outstanding_challenges": 2,
+    "max_candidates_per_challenge": 3,
+    "assurance_profile": "aal2-device-bound-independent-channel",
+    "device_bound_credential_required": true,
+    "channel_independence_required": true,
+    "decline_all_is_first_class": true
+  },
+  "presentation_policy": {
+    "renderer_profile": "draft-schrock-ep-presentation-binding-00",
+    "deterministic_rendering_required": true,
+    "neutralization_required": true,
+    "render_state_hash_required": true,
+    "minimum_attestation_tier": "os-composited",
+    "font_hash": "sha-256:6BA8VSAJZzIiyn7nABD_4_6XHtsOPKw_teVtp8JQpQw",
+    "locale": "en-US",
+    "render_to_input_event_binding_required": true
+  },
+  "issued_at": "2026-06-01T09:00:00Z",
+  "expiry": null,
+  "render_state_hash": "sha-256:ZITZ9D7bfRGus1zS5oStJzR1eZKWdg5ctQyy1dMkvI8",
+  "attestation_tier": "os-composited",
+  "human_signature": {
+    "kid": "o5HkRuu8EEdWHQRC9sWID3UPzZ_Y5eFLMRbFOrZyr8E",
+    "alg": "ES256",
+    "signed_at": "2026-06-01T09:00:00Z",
+    "authenticator": {
+      "credential_id": "cred:passkey-7a1c",
+      "kind": "platform-authenticator",
+      "device_bound": true,
+      "channel_independent": true
+    },
+    "assurance_profile": "aal2-device-bound-independent-channel",
+    "domain_separation": {
+      "audience": "acquirer:northside-psp",
+      "relying_party": "seller:northside-market",
+      "mandate_family_id": "fam:weekly-groceries-8f21",
+      "mandate_version": 1,
+      "rail": "card:visa",
+      "purpose": "mandatepatch/mandate-creation"
+    },
+    "ds_tag": "ok-fCEwZhEtoaNdlMIzm35JJVJOvPak_wz4ibSduDeE",
+    "signature": "PLACEHOLDER-not-a-real-signature-mandate-v1"
+  }
+}

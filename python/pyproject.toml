@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mandatepatch"
+version = "0.1.2"
+description = "Reference implementation of the artifact layer described in Technical Disclosure Commons #11517, \"Mandate Lifecycle Extensions for Agentic Payment Credentials\". Schemas, types, and the canonical commitment. No scorer, no service, no policy engine."
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Matt Kirby" }]
+keywords = ["mandate", "agentic-payments", "canonicalization", "jcs", "rfc8785", "ap2"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Security :: Cryptography",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["jsonschema>=4.23", "mypy>=1.13", "ruff>=0.8"]
+
+[project.urls]
+Homepage = "https://mandatepatch.org"
+Disclosure = "https://www.tdcommons.org/dpubs_series/11517"
+
+[tool.setuptools]
+packages = ["mandatepatch"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["mandatepatch"]

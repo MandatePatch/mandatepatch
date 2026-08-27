@@ -1,0 +1,499 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mandatepatch.org/schemas/canonical-commitment.schema.json",
+  "title": "Canonical Authorization Transaction Commitment",
+  "description": "§4.3. 'The informal notion of a checkout hash is replaced by a canonical commitment over a normative schema: seller identity, line items with SKU and variant identifiers, quantities, unit and total amounts, currency, tax, shipping, fulfillment source, recurrence terms, and post-authorization substitution policy.' This object is the pre-image; its hash under the binding profile's serialization is the `checkout_commitment` carried by a MandatePatch (§4.2) and the sole input to §3 scoring and the sole permissible display source for §6 challenges. PROFILE-DEFINED: 'each binding profile MUST define the deterministic serialization and hash encoding that make the commitment byte-identical across parties' (§4.3) — this repository ships one such profile, `mandatepatch/profile/v1`, as a choice and not as a normative requirement.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profile",
+    "checkout_id",
+    "attempt_nonce",
+    "created_at",
+    "seller",
+    "currency",
+    "currency_minor_unit_exponent",
+    "line_items",
+    "tax",
+    "shipping",
+    "totals",
+    "fulfillment_source",
+    "recurrence",
+    "substitution_policy"
+  ],
+  "properties": {
+    "profile": {
+      "type": "string",
+      "description": "§4.3. Identifier of the binding profile whose deterministic serialization and hash encoding produce the commitment. PROFILE-DEFINED: the paper deliberately fixes no serialization; `mandatepatch/profile/v1` is this repository's default.",
+      "examples": [
+        "mandatepatch/profile/v1"
+      ]
+    },
+    "checkout_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "§6.2. Per-checkout distinguisher; 'the patch sequence number and a per-checkout distinguisher displayed' in the challenge rendering.",
+      "$comment": "PROFILE-DEFINED: identifier syntax and issuing party."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "§4.3. Time the candidate commitment was fixed. Each candidate 'is immutable as presented' (§6.1); a changed cart 'is a new canonical commitment requiring fresh evaluation from the beginning' (§4.2).",
+      "$comment": "PROFILE-DEFINED: timestamp precision and timezone form. Profile v1 requires RFC 3339 with 'Z' and second precision."
+    },
+    "seller": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "seller_id",
+        "legal_name",
+        "merchant_category_code",
+        "domain"
+      ],
+      "description": "§4.3, 'seller identity'.",
+      "properties": {
+        "seller_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "§4.3. Stable identifier of the seller of record."
+        },
+        "legal_name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "§4.3. Seller's legal name as presented at checkout; also a §3 scoring input and a §6 display field."
+        },
+        "merchant_category_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "§4.3. Merchant category, where the rail supplies one; explicit null when not applicable."
+        },
+        "domain": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "§4.3. Seller's commerce domain; explicit null when not applicable."
+        }
+      }
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "§4.3, 'currency'. ISO 4217 alphabetic code, upper case."
+    },
+    "currency_minor_unit_exponent": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4,
+      "description": "Decimal exponent relating minor units to the major unit (2 for USD/EUR, 0 for JPY). PROFILE-DEFINED: profile v1 carries all monetary values as integer minor units and carries this exponent explicitly so that parties never re-derive it from a currency table that may differ between them."
+    },
+    "line_items": {
+      "type": "array",
+      "minItems": 1,
+      "description": "§4.3, 'line items with SKU and variant identifiers, quantities, unit and total amounts'. §3.1: 'Scoring is performed per line item with worst-case aggregation alongside any cart-level score; authorization never rests on a single cart-centroid embedding, which would permit an out-of-scope item to hide inside an in-scope basket.' PROFILE-DEFINED: array ordering. Profile v1 sorts line items ascending by (sku, variant_id, line_id) compared as UTF-16 code-unit sequences, so producer array order cannot change the commitment.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "line_id",
+          "sku",
+          "variant_id",
+          "title",
+          "quantity",
+          "unit_amount_minor",
+          "total_amount_minor",
+          "fulfillment_source"
+        ],
+        "properties": {
+          "line_id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "§4.2. Line-item identifier. For a semantic violation, 'the tuple's value_new encodes the set of approved line-item identifiers within the canonical commitment' — these are those identifiers."
+          },
+          "sku": {
+            "type": "string",
+            "minLength": 1,
+            "description": "§4.3, 'line items with SKU ... identifiers'."
+          },
+          "variant_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "§4.3, 'and variant identifiers'. Explicit null when the item has no variant axis. The worked example's twelve-pack versus twenty-four-pack distinction lives here or in `title` (§1)."
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "description": "§4.3. Human-readable item description. Descriptive under Verifiable Intent's split, but load-bearing here: it is a §3 scoring input and a §6 display field, since E₁ 'MUST [be computed] over the canonical authorization transaction commitment defined in Section 4.3 ... never over agent-relayed prose' (§3.1)."
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "§4.3, 'quantities'."
+          },
+          "unit_amount_minor": {
+            "type": "integer",
+            "description": "§4.3, 'unit ... amounts', in integer minor units of `currency`. PROFILE-DEFINED: profile v1 forbids non-integer numbers anywhere in the commitment."
+          },
+          "total_amount_minor": {
+            "type": "integer",
+            "description": "§4.3, 'and total amounts', in integer minor units. Carried explicitly rather than derived, so that a producer's rounding cannot silently change the commitment."
+          },
+          "fulfillment_source": {
+            "$ref": "#/$defs/fulfillment_source",
+            "description": "§4.3, 'fulfillment source', at line granularity."
+          }
+        }
+      }
+    },
+    "tax": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_amount_minor",
+        "inclusive",
+        "components"
+      ],
+      "description": "§4.3, 'tax'.",
+      "properties": {
+        "total_amount_minor": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "§4.3. Total tax in integer minor units."
+        },
+        "inclusive": {
+          "type": "boolean",
+          "description": "§4.3. Whether tax is already included in line totals."
+        },
+        "components": {
+          "type": "array",
+          "description": "§4.3. Tax components. PROFILE-DEFINED: array ordering. Profile v1 treats every array other than `line_items` as order-significant and preserves producer order; producers therefore MUST emit components in a stable order.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "jurisdiction",
+              "rate_basis_points",
+              "amount_minor"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "description": "§4.3. Tax kind, e.g. 'sales', 'vat', 'gst'."
+              },
+              "jurisdiction": {
+                "type": "string",
+                "description": "§4.3. Levying jurisdiction."
+              },
+              "rate_basis_points": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "§4.3. Rate in integer basis points. PROFILE-DEFINED: rates are integers, not decimals, because profile v1 admits no non-integer numbers."
+              },
+              "amount_minor": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "§4.3. Component amount in integer minor units."
+              }
+            }
+          }
+        }
+      }
+    },
+    "shipping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "amount_minor",
+        "method",
+        "destination"
+      ],
+      "description": "§4.3, 'shipping'.",
+      "properties": {
+        "amount_minor": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "§4.3. Shipping charge in integer minor units."
+        },
+        "method": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "§4.3. Named shipping or pickup method; explicit null when not applicable."
+        },
+        "destination": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "country",
+            "region",
+            "postal_code",
+            "address_commitment"
+          ],
+          "description": "§4.3. Destination. PROFILE-DEFINED: whether the full address or only a commitment to it enters the hash. Profile v1 carries coarse geography in the clear and the precise address as `address_commitment`, so that the commitment can be disclosed to a gateway-side scorer (§3.1) without disclosing the address.",
+          "properties": {
+            "country": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "ISO 3166-1 alpha-2, or explicit null."
+            },
+            "region": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Subdivision, or explicit null."
+            },
+            "postal_code": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Postal code, or explicit null."
+            },
+            "address_commitment": {
+              "$ref": "#/$defs/hash_or_null",
+              "description": "Commitment to the full destination address, or explicit null when the address is out of scope for this commitment."
+            }
+          }
+        }
+      }
+    },
+    "totals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subtotal_minor",
+        "tax_minor",
+        "shipping_minor",
+        "discount_minor",
+        "grand_total_minor"
+      ],
+      "description": "§4.3, 'unit and total amounts'. Carried explicitly so that omitted-field drift is 'within the scope of the hash'.",
+      "properties": {
+        "subtotal_minor": {
+          "type": "integer",
+          "description": "Sum of line totals, integer minor units."
+        },
+        "tax_minor": {
+          "type": "integer",
+          "description": "Tax total, integer minor units."
+        },
+        "shipping_minor": {
+          "type": "integer",
+          "description": "Shipping total, integer minor units."
+        },
+        "discount_minor": {
+          "type": "integer",
+          "description": "Discounts applied, integer minor units, expressed as a non-negative reduction."
+        },
+        "grand_total_minor": {
+          "type": "integer",
+          "description": "Amount authorized, integer minor units. This is the value against which a machine-enforceable amount predicate is checked (§2, §4.2)."
+        }
+      }
+    },
+    "fulfillment_source": {
+      "$ref": "#/$defs/fulfillment_source",
+      "description": "§4.3, 'fulfillment source', at cart granularity."
+    },
+    "recurrence": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "interval",
+            "interval_count",
+            "occurrences",
+            "until",
+            "first_charge_at",
+            "amount_variability",
+            "max_amount_minor"
+          ],
+          "properties": {
+            "interval": {
+              "enum": [
+                "day",
+                "week",
+                "month",
+                "year"
+              ],
+              "description": "§4.3, 'recurrence terms'."
+            },
+            "interval_count": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "§4.3. Number of intervals between charges."
+            },
+            "occurrences": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "description": "§4.3. Bounded occurrence count, or explicit null."
+            },
+            "until": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time",
+              "description": "§4.3. End date, or explicit null."
+            },
+            "first_charge_at": {
+              "type": "string",
+              "format": "date-time",
+              "description": "§4.3. First charge instant."
+            },
+            "amount_variability": {
+              "enum": [
+                "fixed",
+                "variable"
+              ],
+              "description": "§4.3. Whether each charge is fixed or may vary."
+            },
+            "max_amount_minor": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "description": "§4.3. Per-charge ceiling for variable recurrence, integer minor units, or explicit null."
+            }
+          }
+        }
+      ],
+      "description": "§4.3, 'recurrence terms'. Explicit null for a one-off checkout — never omitted, so that omitted-field drift stays within the scope of the hash."
+    },
+    "substitution_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "allowed_substitutions",
+        "max_unit_amount_delta_minor",
+        "notify_principal"
+      ],
+      "description": "§4.3, 'post-authorization substitution policy'. §3.2 states the limit plainly: 'goods substituted at fulfillment time — after authorization — are governed only by the committed substitution-policy field as dispute evidence, not blocked live.'",
+      "properties": {
+        "mode": {
+          "enum": [
+            "none",
+            "equivalent-only",
+            "enumerated",
+            "merchant-discretion"
+          ],
+          "description": "§4.3. Substitution regime committed at authorization."
+        },
+        "allowed_substitutions": {
+          "type": "array",
+          "description": "§4.3. Enumerated permissible substitutes when `mode` is 'enumerated'; otherwise an empty array (never omitted). PROFILE-DEFINED: array ordering — profile v1 preserves producer order.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "line_id",
+              "sku",
+              "variant_id"
+            ],
+            "properties": {
+              "line_id": {
+                "type": "string",
+                "description": "Line the substitution applies to."
+              },
+              "sku": {
+                "type": "string",
+                "description": "Permitted substitute SKU."
+              },
+              "variant_id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Permitted substitute variant, or explicit null."
+              }
+            }
+          }
+        },
+        "max_unit_amount_delta_minor": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "§4.3. Ceiling on unit-price movement a substitution may introduce, integer minor units, or explicit null."
+        },
+        "notify_principal": {
+          "type": "boolean",
+          "description": "§4.3. Whether the principal is notified of a post-authorization substitution. §8 notes that intrinsically noisy markets are better served by 'a coarser mandate with wider category thresholds and an explicit substitution policy, not more patches.'"
+        }
+      }
+    },
+    "attempt_nonce": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{22,}$",
+      "description": "§4.3 (v2.3 erratum). Per-attempt distinguisher: a value unique to each checkout attempt (>=128 bits, base64url, no padding). Distinct from checkout_id: platform checkout/session identifiers persist across cart mutations; the attempt nonce does not. Without it, two byte-identical carts produce identical commitments, defeating duplicate detection and §6.1's voiding against re-presentation of a stale attempt.",
+      "$comment": "PROFILE-DEFINED: entropy source. Profile v1 requires 16 random bytes, base64url without padding (22 chars)."
+    }
+  },
+  "$defs": {
+    "hash_or_null": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^sha-256:[A-Za-z0-9_-]{43}$"
+        }
+      ],
+      "description": "PROFILE-DEFINED hash encoding. Profile v1: SHA-256 over the JCS (RFC 8785) serialization, base64url without padding, prefixed with the algorithm name."
+    },
+    "fulfillment_source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "location_id",
+        "marketplace_seller_id"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "ship-from-warehouse",
+            "ship-from-store",
+            "pickup",
+            "marketplace-seller",
+            "digital"
+          ],
+          "description": "§4.3, 'fulfillment source'."
+        },
+        "location_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Fulfilling location, or explicit null."
+        },
+        "marketplace_seller_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Marketplace seller of record, or explicit null."
+        }
+      }
+    }
+  }
+}

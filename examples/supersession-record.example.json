@@ -1,0 +1,78 @@
+{
+  "schema_version": "mandatepatch/supersession-record/v1",
+  "record_id": "sr:fam-weekly-groceries-8f21-epoch2",
+  "mandate_family_id": "fam:weekly-groceries-8f21",
+  "action": "supersede",
+  "supersedes": "sha-256:H8h7wRzfADzgLqv3t8mSI-nlZ1mAJ3hosUETgucrT4U",
+  "predecessor_version": 1,
+  "successor_mandate_hash": "sha-256:OEwe-V6MAE4Gg9oZyLutRSBrC2oKNP1lrHkI32L1bTA",
+  "successor_version": 2,
+  "epoch": 2,
+  "family_head": "sha-256:z3CM68642tCT7NIILWnl9sYJ68Hjv5kOYioocGGrizI",
+  "head_source": {
+    "kind": "transparency-log",
+    "cosigned_heads": true,
+    "witnesses": [
+      "witness:alpha.example",
+      "witness:beta.example"
+    ],
+    "operator_id": null,
+    "trust_model": "cosigned-log-with-witnesses"
+  },
+  "staleness_bound_seconds": 30,
+  "revocation_mode": "bounded-staleness",
+  "re_baseline": {
+    "new_baseline_commitment": "sha-256:nFzy5ULQFtz5YguQPGn6HA3HNA5kLwxWvGsmQvyYDlY",
+    "commitment_scheme": "sha-256(E0||salt)",
+    "scoring_stack_measurement": "sha-256:CRkLGqIXjw7j6GTQG-BuNEdp_dQBPQrZ24pMptC5L7c",
+    "scoring_stack_version": 3,
+    "instruction_source_bytes_hash": "sha-256:UKrTX43Y1ggZwtW01r0lhwaOs92ihDg4iHIes30NnTg"
+  },
+  "in_flight_resolution": {
+    "authorized_before": "honor",
+    "in_flight_at": "re-evaluate-at-capture",
+    "initiated_after": "evaluate-against-successor",
+    "evaluation_points": [
+      "authorization",
+      "capture"
+    ]
+  },
+  "voided_patch_nullifiers": [
+    "nf-8c11a0d7e35f4b62"
+  ],
+  "nullifier_epoch_update_ordering": "nullify-then-advance",
+  "atomicity_window_ms": 40,
+  "consume_authority": {
+    "authority_id": "registry:wallet.example/fam/weekly-groceries-8f21",
+    "kind": "wallet",
+    "linearizable": true
+  },
+  "effective_at": "2026-09-03T08:15:00Z",
+  "forced_by_patch_exhaustion": false,
+  "full_context_redisplay": true,
+  "cooling_off_observed_seconds": 3600,
+  "render_state_hash": "sha-256:Yw13IhZcFdGdt4rckxsBmskepQHa11-shEGBRWSDr9k",
+  "attestation_tier": "os-composited",
+  "human_signature": {
+    "kid": "o5HkRuu8EEdWHQRC9sWID3UPzZ_Y5eFLMRbFOrZyr8E",
+    "alg": "ES256",
+    "signed_at": "2026-09-03T08:15:00Z",
+    "authenticator": {
+      "credential_id": "cred:passkey-7a1c",
+      "kind": "platform-authenticator",
+      "device_bound": true,
+      "channel_independent": true
+    },
+    "assurance_profile": "aal2-device-bound-independent-channel",
+    "domain_separation": {
+      "audience": "acquirer:northside-psp",
+      "relying_party": "seller:northside-market",
+      "mandate_family_id": "fam:weekly-groceries-8f21",
+      "mandate_version": 1,
+      "rail": "card:visa",
+      "purpose": "mandatepatch/supersession"
+    },
+    "ds_tag": "VA6Pkh0bMgdNFWJRjF72eFEXprlGz_nZLHfUmYiuzYg",
+    "signature": "PLACEHOLDER-not-a-real-signature-supersession-epoch2"
+  }
+}

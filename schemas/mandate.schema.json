@@ -1,0 +1,355 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mandatepatch.org/schemas/mandate.schema.json",
+  "title": "Mandate (with committed semantic baseline)",
+  "description": "§3. The base payment mandate: 'a stored, cryptographically signed mandate derived from a natural-language instruction' (Abstract), extended with the §3 committed baseline and pinned scoring stack, the §4.4 patch-chain governance parameters, the §5.2 freshness terms, and the §6 challenge and presentation policy. §9: 'the MandatePatch and supersession lineage extend those mandate formats with a small set of additional fields and one registry obligation' — this schema is a standalone rendering of that field set, not a replacement for AP2 or Verifiable Intent mandates.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "canonicalization_profile",
+    "binding_profile",
+    "mandate_family_id",
+    "mandate_version",
+    "supersedes",
+    "epoch",
+    "instruction",
+    "semantic_gate",
+    "predicates",
+    "patch_chain_governance",
+    "freshness",
+    "consume_authority",
+    "challenge_policy",
+    "presentation_policy",
+    "issued_at",
+    "expiry",
+    "human_signature"
+  ],
+  "properties": {
+    "schema_version": { "const": "mandatepatch/mandate/v1", "description": "Schema discriminator for this artifact." },
+    "canonicalization_profile": {
+      "type": "string",
+      "description": "§4.3: 'each binding profile MUST define the deterministic serialization and hash encoding that make the commitment byte-identical across parties.' PROFILE-DEFINED: the paper fixes no serialization; this repository ships `mandatepatch/profile/v1`.",
+      "examples": ["mandatepatch/profile/v1"]
+    },
+    "binding_profile": {
+      "type": "string",
+      "description": "§9: 'Bindings for AP2, Verifiable Intent, and ACP are sketched in the artifact archive published alongside this disclosure.' Identifier of the mandate format this artifact binds to. PROFILE-DEFINED.",
+      "examples": ["ap2/v0.2", "verifiable-intent/v0.1", "acp"]
+    },
+    "mandate_family_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "§5.3, 'The mandate family's home registry — wallet or issuer — is the sole linearizable consume authority.' Stable identifier of the family across all versions."
+    },
+    "mandate_version": { "type": "integer", "minimum": 1, "description": "§5.1. Monotonic version within the family; supersession lineage is over versions." },
+    "supersedes": {
+      "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/hash" }],
+      "description": "§5.1, 'supersedes = H(previous) lineage over signed natural-language mandates, in which amendment carries semantic re-baselining — a new committed E₀ — and not merely parameter change.' Explicit null for the first version of a family."
+    },
+    "epoch": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "§5.2, §7. Supersession epoch at which this version became family head; 'the epoch head enter[s] the statement as a public input' (§7). §5.2: 'An authorization is valid only with a freshness proof that its mandate version was the family head at an epoch not older than a mandate-specified staleness bound Δ.'"
+    },
+    "instruction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_text", "source_bytes_hash", "machine_interpretation", "machine_interpretation_hash", "surfaced_conflicts"],
+      "description": "§3.1: 'Both the immutable source bytes of the instruction and its canonical machine interpretation are signed at mandate creation, and material conflicts between them are surfaced at approval time.'",
+      "properties": {
+        "source_text": { "type": "string", "minLength": 1, "description": "§3.1, 'the immutable source bytes of the instruction'. The natural-language instruction as given, e.g. the worked example's 'groceries from the usual store, the usual staples including a twelve-pack of a named soft drink, capped at $150' (§1)." },
+        "source_bytes_hash": { "$ref": "#/$defs/hash", "description": "§3.1. Hash over the immutable source bytes, so the signed bytes are identifiable without disclosing them." },
+        "machine_interpretation": { "type": "object", "description": "§3.1, 'its canonical machine interpretation'. The structured reading of the instruction that the predicate set encodes. PROFILE-DEFINED: the interpretation vocabulary — this repository does not fix one." },
+        "machine_interpretation_hash": { "$ref": "#/$defs/hash", "description": "§3.1. Hash over the canonical machine interpretation." },
+        "surfaced_conflicts": {
+          "type": "array",
+          "description": "§3.1, 'material conflicts between them are surfaced at approval time'; §8: 'Divergence between what the instruction's bytes say and what the machine interpretation encodes is answered by signing both and surfacing conflicts at approval.' Empty array when none were found — never omitted.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["conflict_id", "source_excerpt", "interpretation_pointer", "note"],
+            "properties": {
+              "conflict_id": { "type": "string" },
+              "source_excerpt": { "type": "string", "description": "The instruction text in tension with the interpretation." },
+              "interpretation_pointer": { "type": "string", "description": "JSON Pointer into `machine_interpretation`." },
+              "note": { "type": "string", "description": "What was shown to the principal at approval." }
+            }
+          }
+        }
+      }
+    },
+    "semantic_gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["baseline_commitment", "commitment_scheme", "salt_disclosure_policy", "scoring_stack", "threshold_micro", "category_taxonomy", "threshold_selection_rule", "aggregation", "deployment_variant", "cumulative_divergence_budget_micro", "attempt_budget", "cart_revision_throttle", "agent_visible_outcome_space", "score_disclosure"],
+      "description": "§3. The committed baseline and the terms under which divergence is scored. §3.1 states the five residuals this object carries: a committed rather than stored baseline, a pinned scoring stack inside the principal-signed artifact, suspension rather than decline, a signed divergence record per evaluation, and scoring welded to the canonical transaction commitment.",
+      "properties": {
+        "baseline_commitment": {
+          "$ref": "#/$defs/hash",
+          "description": "§3.1, first residual: 'the baseline is committed, not stored. At mandate signing time the wallet computes an embedding E₀ of the normalized instruction under a pinned scoring stack and places commit(E₀) = H(E₀ ‖ salt) — hiding in the random-oracle model, binding under collision resistance — inside the signed mandate, with the salt held by the wallet and revealed only in dispute.' NOTE: this repository ships no scorer. E₀ is produced outside this library; only the commitment is an artifact field."
+        },
+        "commitment_scheme": {
+          "type": "string",
+          "description": "§3.1. Identifier of the commitment construction for commit(E₀) = H(E₀ ‖ salt). PROFILE-DEFINED: the paper fixes the property (hiding under ROM, binding under collision resistance), not the construction.",
+          "examples": ["sha-256(E0||salt)"]
+        },
+        "salt_disclosure_policy": { "const": "dispute-only", "description": "§3.1, 'with the salt held by the wallet and revealed only in dispute'." },
+        "scoring_stack": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["stack_measurement", "stack_version", "model_hash", "tokenizer_hash", "normalization_rules_hash", "preprocessing_hash", "quantization", "runtime_configuration_hash"],
+          "description": "§3.1, second residual: 'the scoring stack is pinned inside the principal-signed artifact. The mandate carries a measurement of the full stack — model hash, tokenizer, normalization rules, preprocessing, quantization, runtime configuration — not a bare model identifier, together with a monotonic stack version that verifiers enforce against rollback ... so that neither a verifier nor an attacker can silently substitute a more permissive scorer.'",
+          "properties": {
+            "stack_measurement": { "$ref": "#/$defs/hash", "description": "§3.1, 'a measurement of the full stack ... not a bare model identifier'. §8: 'scoring-stack substitution [is answered] by whole-stack measurement with anti-rollback on stack versions.'" },
+            "stack_version": { "type": "integer", "minimum": 1, "description": "§3.1, 'a monotonic stack version that verifiers enforce against rollback'." },
+            "model_hash": { "$ref": "#/$defs/hash", "description": "§3.1, 'model hash'." },
+            "tokenizer_hash": { "$ref": "#/$defs/hash", "description": "§3.1, 'tokenizer'." },
+            "normalization_rules_hash": { "$ref": "#/$defs/hash", "description": "§3.1, 'normalization rules'." },
+            "preprocessing_hash": { "$ref": "#/$defs/hash", "description": "§3.1, 'preprocessing'." },
+            "quantization": { "type": ["string", "null"], "description": "§3.1, 'quantization'. Explicit null when the stack is unquantized." },
+            "runtime_configuration_hash": { "$ref": "#/$defs/hash", "description": "§3.1, 'runtime configuration'." }
+          }
+        },
+        "threshold_micro": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2000000,
+          "description": "§3.1, 'the threshold τ', in integer millionths. The gate fires when d(E₀, E₁) > τ, where AARM's distance is 'd(r₀,aₙ) = 1 − cosine(embed(r₀), embed(aₙ))' (§3.1); τ = 0.18 is encoded 180000. PROFILE-DEFINED (two decisions): the distance function and its range — profile v1 assumes cosine distance on unit-normalized embeddings, hence [0, 2] — and the numeric encoding, since profile v1 admits integers only in every artifact so that the TypeScript and Python ports cannot diverge on float formatting."
+        },
+        "category_taxonomy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["taxonomy_id", "taxonomy_version", "categories"],
+          "description": "§3.1, 'the category taxonomy under which τ was selected'. §8: 'Taxonomy and threshold laundering is answered by the pinned taxonomy and most-conservative-category selection carried in the signed mandate.'",
+          "properties": {
+            "taxonomy_id": { "type": "string" },
+            "taxonomy_version": { "type": "integer", "minimum": 1 },
+            "categories": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["category_id", "threshold_micro"],
+                "properties": {
+                  "category_id": { "type": "string" },
+                  "threshold_micro": { "type": "integer", "minimum": 0, "maximum": 2000000, "description": "Category-specific τ, in integer millionths." }
+                }
+              }
+            }
+          }
+        },
+        "threshold_selection_rule": { "const": "most-conservative-matching-category", "description": "§3.1: 'the applicable threshold is always the most conservative among matching categories'." },
+        "aggregation": { "const": "per-line-item-worst-case", "description": "§3.1: 'Scoring is performed per line item with worst-case aggregation alongside any cart-level score; authorization never rests on a single cart-centroid embedding, which would permit an out-of-scope item to hide inside an in-scope basket.' §8: 'Semantic averaging is answered by mandatory per-line-item scoring with worst-case aggregation.'" },
+        "deployment_variant": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "enclave_measurement"],
+          "description": "§3.1: 'Three deployment variants are specified with distinct trust properties: wallet-side scoring (private, self-attested), gateway-side scoring (network-visible, requires cart disclosure), and TEE-attested scoring (private and third-party verifiable, with the enclave measurement covering the full pinned stack).'",
+          "properties": {
+            "kind": { "enum": ["wallet-side", "gateway-side", "tee-attested"] },
+            "enclave_measurement": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/hash" }], "description": "§3.1. Required for the TEE-attested variant, 'with the enclave measurement covering the full pinned stack'; explicit null otherwise." }
+          }
+        },
+        "cumulative_divergence_budget_micro": { "type": "integer", "minimum": 0, "description": "§3.2: 'A cumulative divergence budget per mandate across transactions guards against semantic salami slicing, in which many individually-passing transactions drift in aggregate.'" },
+        "attempt_budget": { "type": "integer", "minimum": 1, "description": "§3.1: 'per-mandate attempt budgets and cart-revision throttling bound iterative probing of the decision boundary.'" },
+        "cart_revision_throttle": { "type": "integer", "minimum": 1, "description": "§3.1, 'cart-revision throttling'. PROFILE-DEFINED: the throttle window." },
+        "agent_visible_outcome_space": { "const": ["pass", "suspend"], "description": "§3.1: 'The agent-visible outcome is strictly binary — pass or suspend.'" },
+        "score_disclosure": { "const": "encrypted-to-principal-and-issuer", "description": "§3.1: 'the numeric score is encrypted to the user and issuer within the divergence record; upstream parties receive coarse reason codes.'" }
+      }
+    },
+    "predicates": {
+      "type": "array",
+      "minItems": 1,
+      "description": "§4.2. The predicate set evaluated de novo on every authorization: 'machine-enforceable constraints, every third-party-pinned predicate, the semantic gate over every line item, cumulative budgets, and the Section 5.2 freshness check'. §1 quotes Verifiable Intent's split between 'machine-enforceable constraints (amount, payee, merchant), verified at execution time, [and] descriptive fields (product name, brand, color, size) that provide informational context only' — the `kind` field records which side a predicate falls on.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["predicate_id", "kind", "owner", "patchable", "expression", "description"],
+        "allOf": [
+          {
+            "$comment": "§4.2: 'Patches amend only principal-owned predicates ... that predicate is unpatchable by the principal.' Encoded as a schema constraint.",
+            "if": { "properties": { "owner": { "not": { "const": "principal" } } }, "required": ["owner"] },
+            "then": { "properties": { "patchable": { "const": false } } }
+          }
+        ],
+        "properties": {
+          "predicate_id": { "type": "string", "minLength": 1, "description": "§4.2. Referenced by a MandatePatch violation tuple's `violated_predicate_id`." },
+          "kind": { "enum": ["machine-enforceable", "semantic", "descriptive", "cumulative-budget", "freshness"], "description": "§1, §4.2. Which class of predicate this is." },
+          "owner": { "enum": ["principal", "issuer", "lender", "program", "third-party"], "description": "§4.2: 'where an issuer, lender, or program has pinned a predicate — a covenant, an eligibility rule, a category restriction — that predicate is unpatchable by the principal'." },
+          "patchable": { "type": "boolean", "description": "§4.2. True only for principal-owned predicates. 'A MandatePatch cannot make a transaction permissible that a third party's independent policy prohibits. This layer is a principal-side meaning check, not an override of anyone else's authority.'" },
+          "expression": { "type": "object", "description": "The predicate itself, evaluated against the §4.3 canonical commitment. PROFILE-DEFINED: the predicate expression language — this repository fixes none and ships no evaluator." },
+          "description": { "type": "string", "description": "Human-readable statement of the predicate, for §6 display." }
+        }
+      }
+    },
+    "patch_chain_governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["patch_of_patch_permitted", "max_patches_before_forced_supersession", "cooling_off_seconds", "full_context_redisplay_required", "base_locked_while_patch_pending", "cumulative_scope_budget", "settled_patch_derived_spend_counts"],
+      "description": "§4.4.",
+      "properties": {
+        "patch_of_patch_permitted": { "const": false, "description": "§4.2: 'Patch-of-patch is prohibited.'" },
+        "max_patches_before_forced_supersession": { "type": "integer", "minimum": 1, "maximum": 10, "description": "§4.4: 'After a low, profile-defined mandatory number of patches, supersession is forced.' PROFILE-DEFINED: the paper says 'low' and 'profile-defined' and fixes no number. The 1–10 bound here is this repository's reading of 'low', not a value from the paper." },
+        "cooling_off_seconds": { "type": "integer", "minimum": 0, "description": "§4.4: 'a profile-defined cooling-off interval before a durable expansion can be signed.' PROFILE-DEFINED." },
+        "full_context_redisplay_required": { "const": true, "description": "§4.4: 'because patch-exhaustion supersession arrives precisely when a fatigued user is most exploitable, it requires full-context re-display of the original mandate together with all accumulated deltas'." },
+        "base_locked_while_patch_pending": { "const": true, "description": "§4.4: 'While any patch is pending — the pending state beginning at challenge issuance and ending at patch consumption, challenge expiry, or decline — the base mandate is locked against new authorization requests at the consume authority — the pending challenge and supersession remain available — closing the bypass in which micro-transactions are fired to settlement between patch requests to defeat a pending-only cumulative cap.'" },
+        "cumulative_scope_budget": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["semantic_distance_micro", "monetary_delta_minor", "merchant_set_delta"],
+          "description": "§4.4: 'A multidimensional cumulative scope budget — semantic distance, monetary delta, merchant-set delta, tracked per axis — governs the chain, extending the cumulative-spend tracking that Verifiable Intent already requires of networks across Layer-3 fulfillments.'",
+          "properties": {
+            "semantic_distance_micro": { "type": "integer", "minimum": 0, "description": "§4.4, axis one, in integer millionths." },
+            "monetary_delta_minor": { "type": "integer", "minimum": 0, "description": "§4.4, axis two, in integer minor units." },
+            "merchant_set_delta": { "type": "integer", "minimum": 0, "description": "§4.4, axis three: permitted growth of the merchant set." }
+          }
+        },
+        "settled_patch_derived_spend_counts": { "const": true, "description": "§4.4: 'cumulative budgets count settled patch-derived spend.'" }
+      }
+    },
+    "freshness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["staleness_bound_seconds", "revocation_mode", "head_source", "cosigned_heads_required", "evaluation_points"],
+      "description": "§5.2.",
+      "properties": {
+        "staleness_bound_seconds": { "type": "integer", "minimum": 0, "description": "§5.2: 'a mandate-specified staleness bound Δ ... Δ is a service-level bound, not a euphemism: for amendments, activity within Δ against the prior version is tolerated by design.' PROFILE-DEFINED: the value of Δ." },
+        "revocation_mode": { "enum": ["synchronous-head-check", "bounded-staleness"], "description": "§5.2: 'for revocation, a synchronous-head-check mode with Δ approaching zero is specified, because the realistic adversary is an agent that reads the principal's communications and can front-run an announced revocation within any tolerance window.'" },
+        "head_source": { "enum": ["transparency-log", "issuer-registry"], "description": "§5.2: 'The transparency-log deployment requires cosigned heads or a witness network against split-view equivocation; the issuer-registry deployment states its single-operator trust plainly.'" },
+        "cosigned_heads_required": { "type": "boolean", "description": "§5.2. MUST be true for the transparency-log deployment; §8: 'Split-view equivocation against the transparency-log deployment requires cosigned heads.'" },
+        "evaluation_points": { "const": ["authorization", "capture"], "description": "§5.1, §5.2: freshness is 'evaluated both at authorization and again at capture or commit time, on asynchronous rails where no atomic check exists' — 'checked at the authorization's linearization instant and re-checked at capture.'" }
+      }
+    },
+    "consume_authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority_id", "kind", "linearizable"],
+      "description": "§5.3: 'The mandate family's home registry — wallet or issuer — is the sole linearizable consume authority for patch nullifiers and epoch heads. Cross-rail verifiers check it. Exactly-once patch consumption across heterogeneous rails is achieved by construction at that authority, not assumed of the rails.' §5.2: 'Cross-rail immediate finality is not claimed: the consume authority is the linearization point and rails inherit its consistency.' NOTE: this repository implements no consume authority.",
+      "properties": {
+        "authority_id": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["wallet", "issuer"], "description": "§5.3, 'wallet or issuer'." },
+        "linearizable": { "const": true, "description": "§5.3, 'the sole linearizable consume authority'." }
+      }
+    },
+    "challenge_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["challenge_ttl_seconds", "expiry_disposition", "max_outstanding_challenges", "max_candidates_per_challenge", "assurance_profile", "device_bound_credential_required", "channel_independence_required", "decline_all_is_first_class"],
+      "description": "§6.",
+      "properties": {
+        "challenge_ttl_seconds": { "type": "integer", "minimum": 1, "description": "§6.1, 'an expiring out-of-band confirmation' (Abstract). PROFILE-DEFINED: the TTL." },
+        "expiry_disposition": { "const": "void-checkout", "description": "§6.1: 'fail-closed expiry: an expired challenge voids the checkout; nothing silently proceeds or falls back.'" },
+        "max_outstanding_challenges": { "type": "integer", "minimum": 1, "description": "§6.2: 'Per-mandate caps on outstanding challenges ... bound the duplication attack, which issues fresh valid challenges rather than replays.'" },
+        "max_candidates_per_challenge": { "type": "integer", "minimum": 1, "description": "§6.2, 'a per-challenge cap on presented candidates'. §8 notes the residual: 'the agent curates which honest alternatives are presented, so choice-architecture steering ... survives even though every candidate's contents are canonically bound and internally consistent; the protocol's answers are the first-class decline-all outcome and candidate-count caps.'" },
+        "assurance_profile": { "type": "string", "description": "§6.2: 'Authenticator requirements are expressed as assurance profiles — named tiers of authenticator strength and channel independence that a mandate or verifier policy selects by risk.' PROFILE-DEFINED: the tier vocabulary." },
+        "device_bound_credential_required": { "type": "boolean", "description": "§6.2: 'High-risk patches require device-bound credentials or an authenticator independent of the ecosystem controlling the agent session; a registered passkey is the floor, not the profile.'" },
+        "channel_independence_required": { "type": "boolean", "description": "§6.2, §8. Whether the authenticator must be independent of the ecosystem controlling the agent session." },
+        "decline_all_is_first_class": { "const": true, "description": "§6.1: 'declining every candidate is a first-class outcome that voids the checkout.'" }
+      }
+    },
+    "presentation_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["renderer_profile", "deterministic_rendering_required", "neutralization_required", "render_state_hash_required", "minimum_attestation_tier", "font_hash", "locale", "render_to_input_event_binding_required"],
+      "description": "§6.3.",
+      "properties": {
+        "renderer_profile": { "type": "string", "description": "§6.3: 'Challenge renderings under this disclosure MUST be produced by a renderer meeting [draft-schrock-ep-presentation-binding]'s determinism and neutralization requirements; those properties are adopted here, not claimed.' PROFILE-DEFINED: the renderer identifier and version.", "examples": ["draft-schrock-ep-presentation-binding-00"] },
+        "deterministic_rendering_required": { "const": true, "description": "§6.3: 'a deterministic renderer — a pure function from the signed canonical action to a byte-identical human-readable rendering'." },
+        "neutralization_required": { "const": true, "description": "§6.3: 'normative neutralization of bidirectional overrides, control characters, and homoglyph-bearing runs, refuse-on-unsafe semantics, verifier re-derivation'." },
+        "render_state_hash_required": { "type": "boolean", "description": "§6.3, §4.2. Whether the optional render-state hash is mandatory under this mandate's policy." },
+        "minimum_attestation_tier": { "enum": ["hardware", "os-composited", "software"], "description": "§6.3: 'a tiered attestation level (hardware secure-display, OS-composited, software) is recorded in the artifact, with the software tier declared evidentially weak'." },
+        "font_hash": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/hash" }], "description": "§6.3, 'pinned font hash'. Explicit null when no font is pinned." },
+        "locale": { "type": ["string", "null"], "description": "§6.3, 'locale-fixed numeric formatting within that font'. §8 lists 'locale separator confusion' among the display attacks the canonicalization profile answers." },
+        "render_to_input_event_binding_required": { "const": true, "description": "§6.3: 'render-to-input-event binding closes the time-of-check/time-of-use window between display and confirmation.'" }
+      }
+    },
+    "issued_at": { "type": "string", "format": "date-time", "description": "Mandate signing instant." },
+    "expiry": { "oneOf": [{ "type": "null" }, { "type": "string", "format": "date-time" }], "description": "Mandate expiry, or explicit null for a standing mandate. The worked example is 'a standing weekly mandate' (§1)." },
+    "render_state_hash": { "$ref": "#/$defs/hash", "description": "§6.3, optional: 'Mandate and MandatePatch signatures optionally carry a render-state hash computed over the composited interface as presented.'" },
+    "attestation_tier": { "enum": ["hardware", "os-composited", "software"], "description": "§6.3, optional; 'with the software tier declared evidentially weak'." },
+    "human_signature": { "$ref": "#/$defs/human_signature", "description": "§3.1, 'the principal-signed artifact'; §6.2 domain separation." }
+  },
+  "$comment": "PROFILE-DEFINED, collected: the deterministic serialization and hash encoding (§4.3); the commitment construction for commit(E₀) (§3.1); the embedding distance function and its range (§3.1); the taxonomy vocabulary (§3.1); the machine-interpretation vocabulary (§3.1); the predicate expression language (§4.2); the forced-supersession patch ceiling and the cooling-off interval (§4.4); Δ (§5.2); challenge TTL and caps (§6); the assurance-tier vocabulary (§6.2); the renderer identifier and the composited-interface canonicalization (§6.3). This repository ships artifacts only: no scorer, no evaluator, no consume authority, no renderer.",
+  "$defs": {
+    "anchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["log_id", "epoch", "inclusion_proof"],
+      "description": "Independent evidence that a signature existed at its `signed_at`. OPTIONAL but RECOMMENDED: routine verification can rely on a self-asserted `signed_at`, but dispute-grade evidence cannot, because a self-asserted timestamp is asserted by the one party with an incentive to misstate it. PROFILE-DEFINED: profile v1 anchors into the \u00a75.2 transparency log rather than standing up a second log \u2014 \u00a75.2 already requires 'cosigned heads or a witness network against split-view equivocation', which is precisely the property a time anchor needs, so reusing it adds a guarantee without adding an operator. RECORDED ALTERNATIVE: an RFC 3161 timestamp authority, which a \u00a75.2 issuer-registry deployment needs instead, since such a deployment may run no log at all. Stapled at signing time, so dispute-time verification never depends on a service endpoint still being reachable years later.",
+      "properties": {
+        "log_id": { "type": "string", "minLength": 1, "description": "Identifier of the \u00a75.2 transparency log this signature is anchored in." },
+        "epoch": { "type": "integer", "minimum": 1, "description": "Log epoch whose cosigned head covers this entry \u2014 the same epoch space a supersession record advances (\u00a75.2, \u00a77)." },
+        "inclusion_proof": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
+          "description": "Merkle audit path from this signature's leaf to the epoch head, ordered leaf-ward to root-ward, each sibling hash base64url unpadded. PROFILE-DEFINED: leaf encoding and the log's hash function."
+        }
+      }
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^sha-256:[A-Za-z0-9_-]{43}$",
+      "description": "PROFILE-DEFINED hash encoding. Profile v1: SHA-256 over the JCS (RFC 8785) serialization, base64url without padding, prefixed with the algorithm name."
+    },
+    "human_signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kid", "alg", "signed_at", "authenticator", "assurance_profile", "domain_separation", "ds_tag", "signature"],
+      "properties": {
+        "kid": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "description": "Key identifier of the signing key. PROFILE-DEFINED: the derivation. Profile v1 uses `base64url(SHA-256(SPKI DER))` without padding \u2014 the unpadded base64url encoding of the SHA-256 digest of the DER-encoded SubjectPublicKeyInfo of the signing public key. The identifier is therefore CONTENT-DERIVED and unambiguous without consulting any directory; a key directory only RESOLVES a `kid` to its material and validity interval, it never defines it. REQUIRED, and deliberately not optional: evidence signed without a key identifier is verifiable only by trial-verification against every historical key, which goes ambiguous the instant two keys coexist. This field is NOT retrofittable \u2014 artifacts already signed without it can never be cleanly verified after a rotation, which is why it is present from the first commit. RECORDED ALTERNATIVE: an RFC 7638 JWK thumbprint, which is equally content-derived but fixes the key representation to JWK rather than SPKI."
+        },
+        "alg": {
+          "enum": ["ES256", "ES384", "ES512", "EdDSA", "RS256", "PS256"],
+          "description": "Signature algorithm identifier, JOSE/COSE name. PROFILE-DEFINED: the disclosure constrains no algorithm suite. Profile v1 admits exactly this set \u2014 ES256/ES384/ES512, the ECDSA suite AP2 v0.2 requires of its bindings; EdDSA (Ed25519); and RS256/PS256, which appear on deployed WebAuthn authenticators. A binding profile MAY narrow this enum but MUST NOT widen it without taking a new profile identifier. This member REPLACES the former free-string `algorithm`: a free string and a constrained identifier naming the same fact can disagree, and disagreement about the algorithm is disagreement about what the signature covers."
+        },
+        "signed_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The signing instant, RFC 3339 with 'Z' and second precision \u2014 the same timestamp form every other timestamp in this repository uses (PROFILE-DEFINED, decided; profile v1 takes no epoch-integer form, so that a validity interval and an artifact's `issued_at`/`expiry` are always directly comparable). This is the instant that key-validity intervals are evaluated AGAINST: a signature verifies iff `signed_at` falls inside the [not_before, not_after] interval recorded for `kid`, and a verifier MUST verify against THE KEY CURRENT AT SIGNING TIME, NEVER THE KEY CURRENT NOW. Rejecting evidence because its signing key was rotated afterwards is a bug, not a security property \u2014 planned retirement is prospective only, and evidence anchored before it stays valid permanently. A self-asserted `signed_at` is adequate for routine verification and NOT adequate for dispute-grade evidence; see `anchor`."
+        },
+        "authenticator": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["credential_id", "kind", "device_bound", "channel_independent"],
+          "properties": {
+            "credential_id": { "type": "string" },
+            "kind": { "type": "string" },
+            "device_bound": { "type": "boolean" },
+            "channel_independent": { "type": "boolean" }
+          }
+        },
+        "assurance_profile": { "type": "string" },
+        "domain_separation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["audience", "relying_party", "mandate_family_id", "mandate_version", "rail", "purpose"],
+          "properties": {
+            "audience": { "type": "string" },
+            "relying_party": { "type": "string" },
+            "mandate_family_id": { "type": "string" },
+            "mandate_version": { "type": "integer", "minimum": 1 },
+            "rail": { "type": "string" },
+            "purpose": { "type": "string" }
+          },
+          "description": "§6.2: 'domain-separated over audience, relying party, mandate family and version, rail, and protocol purpose'."
+        },
+        "ds_tag": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "description": "\u00a76.2 domain-separation tag: the digest of the domain separator this signature is bound to, base64url unpadded. DISPOSITION (PROFILE-DEFINED, DECIDED \u2014 this is the choice the schema makes rather than leaves implicit): profile v1 carries `ds_tag` HERE, in the JSON body, beside the `domain_separation` components it is derived from, AND requires it to byte-equal the domain separator bound into the carrier's signed input \u2014 the WebAuthn `clientDataJSON.challenge`, or the KB-JWT `aud`/`nonce` under an SD-JWT binding. A verifier MUST recompute the tag from `domain_separation` and MUST compare it against the value bound in the carrier; a body `ds_tag` not reproduced in the carrier is NOT covered by the signature and MUST be rejected. The body copy exists so that evidence can be checked offline without a carrier parser; the carrier copy is what makes the separator signature-covered. Leaving this disposition implicit is exactly what \u00a76.2's transplant attack needs in order to succeed, because two verifiers would otherwise disagree about whether the separator is signature-covered at all. RECORDED ALTERNATIVE: carry the tag ENTIRELY in the WebAuthn/KB-JWT layer and leave only the components in the body \u2014 rejected for v1 because it makes offline evidence verification depend on a carrier parser, and because body components carrying no tag invite a verifier to treat them as authoritative when nothing signs them. PROFILE-DEFINED derivation, profile v1: SHA-256 over the ASCII prefix 'MandateLifecycle/v1/transcript' followed by LP(purpose), LP(audience), LP(relying_party), LP(mandate_family_id), LP(decimal encoding of mandate_version), LP(rail), LP(binding_profile), where LP(x) is the uint16 big-endian byte length of the UTF-8 encoding of x followed by those bytes \u2014 length-prefixed with NO delimiters, because `relying_party` and `mandate_family_id` are attacker-influenced. The prefix MUST differ from the \u00a77 nullifier prefix ('MandateLifecycle/v1/nullifier') so that a transcript tag and a nullifier tag can never collide."
+        },
+        "anchor": {
+          "$ref": "#/$defs/anchor",
+          "description": "OPTIONAL but RECOMMENDED \u2014 see the `$defs/anchor` description. Omit it and `signed_at` is self-asserted, which does not carry dispute-grade weight, because the signer is precisely the party with an incentive to misstate the signing time."
+        },
+        "signature": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" }
+      }
+    }
+  }
+}

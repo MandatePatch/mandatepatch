@@ -1,0 +1,575 @@
+{
+  "$comment": "Shared canonicalization test vectors for mandatepatch/profile/v1. Regenerate with scripts/build-vectors.py. The TypeScript and Python ports MUST both reproduce every expected_jcs and expected_digest byte for byte, and MUST both raise the named error code for every reject vector.",
+  "profile": "mandatepatch/profile/v1",
+  "serialization": "RFC 8785 JSON Canonicalization Scheme (JCS)",
+  "hash": "SHA-256 over the UTF-8 bytes of the canonical string, base64url without padding, prefixed 'sha-256:'",
+  "vectors": [
+    {
+      "name": "empty-object",
+      "mode": "value",
+      "note": "The base case: SHA-256 over the two bytes '{}'.",
+      "input": {},
+      "expected_jcs": "{}",
+      "expected_digest": "sha-256:RBNvo1WzZ4oRRq0W9-hknpT7T8If536DEMBg9hyq_4o"
+    },
+    {
+      "name": "nulls-booleans-empty-containers",
+      "mode": "value",
+      "note": "Explicit null is a value, not an omission. Profile v1 requires explicit null over omission throughout the 4.3 schema so that 'omitted-field drift is thereby within the scope of the hash'.",
+      "input": {
+        "a": null,
+        "b": true,
+        "c": false,
+        "d": [],
+        "e": {}
+      },
+      "expected_jcs": "{\"a\":null,\"b\":true,\"c\":false,\"d\":[],\"e\":{}}",
+      "expected_digest": "sha-256:31kCrkAH-li4YnPcskkp53uS3n8VzvSW2__HsT2nCO0"
+    },
+    {
+      "name": "key-order-ascii",
+      "mode": "value",
+      "note": "RFC 8785 sorts object member names by UTF-16 code unit, not by any locale collation: digits before uppercase before lowercase.",
+      "input": {
+        "b": 1,
+        "A": 2,
+        "a": 3,
+        "10": 4,
+        "1": 5
+      },
+      "expected_jcs": "{\"1\":5,\"10\":4,\"A\":2,\"a\":3,\"b\":1}",
+      "expected_digest": "sha-256:GbOWwgS9CiQEZ8cyPr4y7GHojKVnA8Qx4Vu5shptDGQ"
+    },
+    {
+      "name": "key-order-utf16-astral",
+      "mode": "value",
+      "note": "The discriminator between UTF-16 code-unit ordering and code-point ordering: U+10000 and above begin with a high surrogate (0xD800..0xDBFF), so they sort BEFORE U+E000 and U+FFFD in UTF-16 order and AFTER them by code point. Python's native string comparison gets this wrong; the port sorts on big-endian UTF-16 bytes instead.",
+      "input": {
+        "\ufffd\ufffd": "two-replacement-chars",
+        "\ud83d\ude00": "astral",
+        "a": "ascii",
+        "\ue000": "bmp-pua"
+      },
+      "expected_jcs": "{\"a\":\"ascii\",\"\ud83d\ude00\":\"astral\",\"\ue000\":\"bmp-pua\",\"\ufffd\ufffd\":\"two-replacement-chars\"}",
+      "expected_digest": "sha-256:J-aTDj1rlQvMDZAzO5LxLmtwxNmHNNxfnsT6pl66iGI"
+    },
+    {
+      "name": "nfc-normalization",
+      "mode": "value",
+      "note": "PROFILE-DEFINED: v1 normalizes every key and every string value to NFC. Decomposed input hashes identically to precomposed input.",
+      "input": {
+        "e\u0301cole": "cafe\u0301",
+        "stra\u00dfe": "gru\u0308n"
+      },
+      "expected_jcs": "{\"stra\u00dfe\":\"gr\u00fcn\",\"\u00e9cole\":\"caf\u00e9\"}",
+      "expected_digest": "sha-256:3NZ73wyjEYSE-93cJw18F5DDwT7yZqlbCI7hDZL67p8"
+    },
+    {
+      "name": "string-escapes",
+      "mode": "value",
+      "note": "RFC 8785 3.2.2.2 escaping: named escapes for the five, backslash-u00xx lowercase hex below 0x20, and nothing else escaped - not the solidus, not DEL, not non-ASCII.",
+      "input": {
+        "named": "\b\t\n\f\r",
+        "ctrl": "\u0000\u0001\u001f",
+        "quote": "\"",
+        "backslash": "\\",
+        "solidus": "/",
+        "del": "\u007f",
+        "nbsp": "\u00a0"
+      },
+      "expected_jcs": "{\"backslash\":\"\\\\\",\"ctrl\":\"\\u0000\\u0001\\u001f\",\"del\":\"\u007f\",\"named\":\"\\b\\t\\n\\f\\r\",\"nbsp\":\"\u00a0\",\"quote\":\"\\\"\",\"solidus\":\"/\"}",
+      "expected_digest": "sha-256:G98ojytjbU_J8UMJt8CWB9sazNcDrgRmmb2L4Tb4D8I"
+    },
+    {
+      "name": "integers",
+      "mode": "value",
+      "note": "PROFILE-DEFINED: v1 admits integers only. An integer-valued float is accepted and serialized as an integer; -0 normalizes to 0. Non-integer numbers are rejected.",
+      "input": {
+        "max": 9007199254740991,
+        "min": -9007199254740991,
+        "zero": 0,
+        "negzero": -0.0,
+        "int_valued_float": 100.0
+      },
+      "expected_jcs": "{\"int_valued_float\":100,\"max\":9007199254740991,\"min\":-9007199254740991,\"negzero\":0,\"zero\":0}",
+      "expected_digest": "sha-256:c0uLIsdSK0RxDTnT6QkUrAENVu0uMtsDlDLKJxJFAN4"
+    },
+    {
+      "name": "array-order-preserved",
+      "mode": "value",
+      "note": "RFC 8785 leaves array order alone. Profile v1 reorders only 'line_items', and only in canonical_commitment(); every other array is order-significant.",
+      "input": {
+        "list": [
+          3,
+          1,
+          2
+        ],
+        "objs": [
+          {
+            "b": 1,
+            "a": 2
+          },
+          {
+            "d": 4,
+            "c": 3
+          }
+        ]
+      },
+      "expected_jcs": "{\"list\":[3,1,2],\"objs\":[{\"a\":2,\"b\":1},{\"c\":3,\"d\":4}]}",
+      "expected_digest": "sha-256:LTXylbztuRi0Olye_RvZgK9XGojN7cpzHxbBd5TUja0"
+    },
+    {
+      "name": "unicode-values-literal",
+      "mode": "value",
+      "note": "Non-ASCII output is literal UTF-8, never backslash-u escaped. The hash is over the UTF-8 bytes of that string.",
+      "input": {
+        "cjk": "\u65e5\u672c\u8a9e",
+        "emoji": "\ud83d\ude42",
+        "rtl": "\u0645\u0631\u062d\u0628\u0627"
+      },
+      "expected_jcs": "{\"cjk\":\"\u65e5\u672c\u8a9e\",\"emoji\":\"\ud83d\ude42\",\"rtl\":\"\u0645\u0631\u062d\u0628\u0627\"}",
+      "expected_digest": "sha-256:NJzK2CZRe_Jsjrv8NTu1v5-yojSDgDBaFLh5WjK089k"
+    },
+    {
+      "name": "commitment-canonical-order",
+      "mode": "commitment",
+      "note": "The 4.3 canonical authorization transaction commitment for the disclosure's worked example (1): a weekly grocery cart whose only divergence is a twenty-four-pack where the instruction said twelve. Line items already in profile order.",
+      "input": {
+        "profile": "mandatepatch/profile/v1",
+        "checkout_id": "chk:2026-W35-northside-0417",
+        "attempt_nonce": "Zk9tQ1hyVGJ3TDJfNmhOcEE",
+        "created_at": "2026-08-27T14:02:11Z",
+        "seller": {
+          "seller_id": "seller:northside-market",
+          "legal_name": "Northside Market LLC",
+          "merchant_category_code": "5411",
+          "domain": "northsidemarket.example"
+        },
+        "currency": "USD",
+        "currency_minor_unit_exponent": 2,
+        "line_items": [
+          {
+            "line_id": "li-001",
+            "sku": "SKU-BREAD-SOURDOUGH",
+            "variant_id": null,
+            "title": "Sourdough loaf, 700 g",
+            "quantity": 2,
+            "unit_amount_minor": 549,
+            "total_amount_minor": 1098,
+            "fulfillment_source": {
+              "kind": "ship-from-store",
+              "location_id": "store:northside-04",
+              "marketplace_seller_id": null
+            }
+          },
+          {
+            "line_id": "li-002",
+            "sku": "SKU-COLA-CANS",
+            "variant_id": "24-pack",
+            "title": "Fizzwater Cola, 24-pack cans",
+            "quantity": 1,
+            "unit_amount_minor": 1349,
+            "total_amount_minor": 1349,
+            "fulfillment_source": {
+              "kind": "ship-from-store",
+              "location_id": "store:northside-04",
+              "marketplace_seller_id": null
+            }
+          },
+          {
+            "line_id": "li-003",
+            "sku": "SKU-MILK-WHOLE",
+            "variant_id": "1-gallon",
+            "title": "Whole milk, 1 gallon",
+            "quantity": 1,
+            "unit_amount_minor": 429,
+            "total_amount_minor": 429,
+            "fulfillment_source": {
+              "kind": "ship-from-store",
+              "location_id": "store:northside-04",
+              "marketplace_seller_id": null
+            }
+          }
+        ],
+        "tax": {
+          "total_amount_minor": 209,
+          "inclusive": false,
+          "components": [
+            {
+              "kind": "sales",
+              "jurisdiction": "US-NY",
+              "rate_basis_points": 725,
+              "amount_minor": 209
+            }
+          ]
+        },
+        "shipping": {
+          "amount_minor": 499,
+          "method": "same-day-delivery",
+          "destination": {
+            "country": "US",
+            "region": "NY",
+            "postal_code": "10025",
+            "address_commitment": "sha-256:g4PULE6U1LPNwfpQ8raSdIpSGzHmw6ejdqmT8KdxDGM"
+          }
+        },
+        "totals": {
+          "subtotal_minor": 2876,
+          "tax_minor": 209,
+          "shipping_minor": 499,
+          "discount_minor": 0,
+          "grand_total_minor": 3584
+        },
+        "fulfillment_source": {
+          "kind": "ship-from-store",
+          "location_id": "store:northside-04",
+          "marketplace_seller_id": null
+        },
+        "recurrence": null,
+        "substitution_policy": {
+          "mode": "equivalent-only",
+          "allowed_substitutions": [],
+          "max_unit_amount_delta_minor": 100,
+          "notify_principal": true
+        }
+      },
+      "expected_jcs": "{\"attempt_nonce\":\"Zk9tQ1hyVGJ3TDJfNmhOcEE\",\"checkout_id\":\"chk:2026-W35-northside-0417\",\"created_at\":\"2026-08-27T14:02:11Z\",\"currency\":\"USD\",\"currency_minor_unit_exponent\":2,\"fulfillment_source\":{\"kind\":\"ship-from-store\",\"location_id\":\"store:northside-04\",\"marketplace_seller_id\":null},\"line_items\":[{\"fulfillment_source\":{\"kind\":\"ship-from-store\",\"location_id\":\"store:northside-04\",\"marketplace_seller_id\":null},\"line_id\":\"li-001\",\"quantity\":2,\"sku\":\"SKU-BREAD-SOURDOUGH\",\"title\":\"Sourdough loaf, 700 g\",\"total_amount_minor\":1098,\"unit_amount_minor\":549,\"variant_id\":null},{\"fulfillment_source\":{\"kind\":\"ship-from-store\",\"location_id\":\"store:northside-04\",\"marketplace_seller_id\":null},\"line_id\":\"li-002\",\"quantity\":1,\"sku\":\"SKU-COLA-CANS\",\"title\":\"Fizzwater Cola, 24-pack cans\",\"total_amount_minor\":1349,\"unit_amount_minor\":1349,\"variant_id\":\"24-pack\"},{\"fulfillment_source\":{\"kind\":\"ship-from-store\",\"location_id\":\"store:northside-04\",\"marketplace_seller_id\":null},\"line_id\":\"li-003\",\"quantity\":1,\"sku\":\"SKU-MILK-WHOLE\",\"title\":\"Whole milk, 1 gallon\",\"total_amount_minor\":429,\"unit_amount_minor\":429,\"variant_id\":\"1-gallon\"}],\"profile\":\"mandatepatch/profile/v1\",\"recurrence\":null,\"seller\":{\"domain\":\"northsidemarket.example\",\"legal_name\":\"Northside Market LLC\",\"merchant_category_code\":\"5411\",\"seller_id\":\"seller:northside-market\"},\"shipping\":{\"amount_minor\":499,\"destination\":{\"address_commitment\":\"sha-256:g4PULE6U1LPNwfpQ8raSdIpSGzHmw6ejdqmT8KdxDGM\",\"country\":\"US\",\"postal_code\":\"10025\",\"region\":\"NY\"},\"method\":\"same-day-delivery\"},\"substitution_policy\":{\"allowed_substitutions\":[],\"max_unit_amount_delta_minor\":100,\"mode\":\"equivalent-only\",\"notify_principal\":true},\"tax\":{\"components\":[{\"amount_minor\":209,\"jurisdiction\":\"US-NY\",\"kind\":\"sales\",\"rate_basis_points\":725}],\"inclusive\":false,\"total_amount_minor\":209},\"totals\":{\"discount_minor\":0,\"grand_total_minor\":3584,\"shipping_minor\":499,\"subtotal_minor\":2876,\"tax_minor\":209}}",
+      "expected_digest": "sha-256:kEHS9w4GR7KawjUuVmYWbH2Ng3cVWyaVFEyoSf9aA80"
+    },
+    {
+      "name": "commitment-line-items-reversed",
+      "mode": "commitment",
+      "note": "PROFILE-DEFINED array ordering, demonstrated: the same cart with line_items in reverse producer order MUST yield the identical commitment. Compare the digest with 'commitment-canonical-order'.",
+      "input": {
+        "profile": "mandatepatch/profile/v1",
+        "checkout_id": "chk:2026-W35-northside-0417",
+        "attempt_nonce": "Zk9tQ1hyVGJ3TDJfNmhOcEE",
+        "created_at": "2026-08-27T14:02:11Z",
+        "seller": {
+          "seller_id": "seller:northside-market",
+          "legal_name": "Northside Market LLC",
+          "merchant_category_code": "5411",
+          "domain": "northsidemarket.example"
+        },
+        "currency": "USD",
+        "currency_minor_unit_exponent": 2,
+        "line_items": [
+          {
+            "line_id": "li-003",
+            "sku": "SKU-MILK-WHOLE",
+            "variant_id": "1-gallon",
+            "title": "Whole milk, 1 gallon",
+            "quantity": 1,
+            "unit_amount_minor": 429,
+            "total_amount_minor": 429,
+            "fulfillment_source": {
+              "kind": "ship-from-store",
+              "location_id": "store:northside-04",
+              "marketplace_seller_id": null
+            }
+          },
+          {
+            "line_id": "li-002",
+            "sku": "SKU-COLA-CANS",
+            "variant_id": "24-pack",
+            "title": "Fizzwater Cola, 24-pack cans",
+            "quantity": 1,
+            "unit_amount_minor": 1349,
+            "total_amount_minor": 1349,
+            "fulfillment_source": {
+              "kind": "ship-from-store",
+              "location_id": "store:northside-04",
+              "marketplace_seller_id": null
+            }
+          },
+          {
+            "line_id": "li-001",
+            "sku": "SKU-BREAD-SOURDOUGH",
+            "variant_id": null,
+            "title": "Sourdough loaf, 700 g",
+            "quantity": 2,
+            "unit_amount_minor": 549,
+            "total_amount_minor": 1098,
+            "fulfillment_source": {
+              "kind": "ship-from-store",
+              "location_id": "store:northside-04",
+              "marketplace_seller_id": null
+            }
+          }
+        ],
+        "tax": {
+          "total_amount_minor": 209,
+          "inclusive": false,
+          "components": [
+            {
+              "kind": "sales",
+              "jurisdiction": "US-NY",
+              "rate_basis_points": 725,
+              "amount_minor": 209
+            }
+          ]
+        },
+        "shipping": {
+          "amount_minor": 499,
+          "method": "same-day-delivery",
+          "destination": {
+            "country": "US",
+            "region": "NY",
+            "postal_code": "10025",
+            "address_commitment": "sha-256:g4PULE6U1LPNwfpQ8raSdIpSGzHmw6ejdqmT8KdxDGM"
+          }
+        },
+        "totals": {
+          "subtotal_minor": 2876,
+          "tax_minor": 209,
+          "shipping_minor": 499,
+          "discount_minor": 0,
+          "grand_total_minor": 3584
+        },
+        "fulfillment_source": {
+          "kind": "ship-from-store",
+          "location_id": "store:northside-04",
+          "marketplace_seller_id": null
+        },
+        "recurrence": null,
+        "substitution_policy": {
+          "mode": "equivalent-only",
+          "allowed_substitutions": [],
+          "max_unit_amount_delta_minor": 100,
+          "notify_principal": true
+        }
+      },
+      "expected_jcs": "{\"attempt_nonce\":\"Zk9tQ1hyVGJ3TDJfNmhOcEE\",\"checkout_id\":\"chk:2026-W35-northside-0417\",\"created_at\":\"2026-08-27T14:02:11Z\",\"currency\":\"USD\",\"currency_minor_unit_exponent\":2,\"fulfillment_source\":{\"kind\":\"ship-from-store\",\"location_id\":\"store:northside-04\",\"marketplace_seller_id\":null},\"line_items\":[{\"fulfillment_source\":{\"kind\":\"ship-from-store\",\"location_id\":\"store:northside-04\",\"marketplace_seller_id\":null},\"line_id\":\"li-001\",\"quantity\":2,\"sku\":\"SKU-BREAD-SOURDOUGH\",\"title\":\"Sourdough loaf, 700 g\",\"total_amount_minor\":1098,\"unit_amount_minor\":549,\"variant_id\":null},{\"fulfillment_source\":{\"kind\":\"ship-from-store\",\"location_id\":\"store:northside-04\",\"marketplace_seller_id\":null},\"line_id\":\"li-002\",\"quantity\":1,\"sku\":\"SKU-COLA-CANS\",\"title\":\"Fizzwater Cola, 24-pack cans\",\"total_amount_minor\":1349,\"unit_amount_minor\":1349,\"variant_id\":\"24-pack\"},{\"fulfillment_source\":{\"kind\":\"ship-from-store\",\"location_id\":\"store:northside-04\",\"marketplace_seller_id\":null},\"line_id\":\"li-003\",\"quantity\":1,\"sku\":\"SKU-MILK-WHOLE\",\"title\":\"Whole milk, 1 gallon\",\"total_amount_minor\":429,\"unit_amount_minor\":429,\"variant_id\":\"1-gallon\"}],\"profile\":\"mandatepatch/profile/v1\",\"recurrence\":null,\"seller\":{\"domain\":\"northsidemarket.example\",\"legal_name\":\"Northside Market LLC\",\"merchant_category_code\":\"5411\",\"seller_id\":\"seller:northside-market\"},\"shipping\":{\"amount_minor\":499,\"destination\":{\"address_commitment\":\"sha-256:g4PULE6U1LPNwfpQ8raSdIpSGzHmw6ejdqmT8KdxDGM\",\"country\":\"US\",\"postal_code\":\"10025\",\"region\":\"NY\"},\"method\":\"same-day-delivery\"},\"substitution_policy\":{\"allowed_substitutions\":[],\"max_unit_amount_delta_minor\":100,\"mode\":\"equivalent-only\",\"notify_principal\":true},\"tax\":{\"components\":[{\"amount_minor\":209,\"jurisdiction\":\"US-NY\",\"kind\":\"sales\",\"rate_basis_points\":725}],\"inclusive\":false,\"total_amount_minor\":209},\"totals\":{\"discount_minor\":0,\"grand_total_minor\":3584,\"shipping_minor\":499,\"subtotal_minor\":2876,\"tax_minor\":209}}",
+      "expected_digest": "sha-256:kEHS9w4GR7KawjUuVmYWbH2Ng3cVWyaVFEyoSf9aA80"
+    },
+    {
+      "name": "commitment-attempt-nonce-distinguishes",
+      "mode": "commitment",
+      "note": "v2.3 erratum (Section 4.3), the load-bearing case: this cart is byte-identical to 'commitment-canonical-order' in every field except attempt_nonce - same seller, same line items, same totals, and the SAME checkout_id. Its digest MUST differ. A platform checkout or session identifier persists across cart mutations, so binding to checkout_id alone leaves two distinct presentations of the same cart indistinguishable, which is the re-presentation window this field closes. If this vector ever matches 'commitment-canonical-order', the erratum has been silently reverted.",
+      "input": {
+        "profile": "mandatepatch/profile/v1",
+        "checkout_id": "chk:2026-W35-northside-0417",
+        "attempt_nonce": "Y2hMd18wUXZOZTdrUmpEcVM",
+        "created_at": "2026-08-27T14:02:11Z",
+        "seller": {
+          "seller_id": "seller:northside-market",
+          "legal_name": "Northside Market LLC",
+          "merchant_category_code": "5411",
+          "domain": "northsidemarket.example"
+        },
+        "currency": "USD",
+        "currency_minor_unit_exponent": 2,
+        "line_items": [
+          {
+            "line_id": "li-001",
+            "sku": "SKU-BREAD-SOURDOUGH",
+            "variant_id": null,
+            "title": "Sourdough loaf, 700 g",
+            "quantity": 2,
+            "unit_amount_minor": 549,
+            "total_amount_minor": 1098,
+            "fulfillment_source": {
+              "kind": "ship-from-store",
+              "location_id": "store:northside-04",
+              "marketplace_seller_id": null
+            }
+          },
+          {
+            "line_id": "li-002",
+            "sku": "SKU-COLA-CANS",
+            "variant_id": "24-pack",
+            "title": "Fizzwater Cola, 24-pack cans",
+            "quantity": 1,
+            "unit_amount_minor": 1349,
+            "total_amount_minor": 1349,
+            "fulfillment_source": {
+              "kind": "ship-from-store",
+              "location_id": "store:northside-04",
+              "marketplace_seller_id": null
+            }
+          },
+          {
+            "line_id": "li-003",
+            "sku": "SKU-MILK-WHOLE",
+            "variant_id": "1-gallon",
+            "title": "Whole milk, 1 gallon",
+            "quantity": 1,
+            "unit_amount_minor": 429,
+            "total_amount_minor": 429,
+            "fulfillment_source": {
+              "kind": "ship-from-store",
+              "location_id": "store:northside-04",
+              "marketplace_seller_id": null
+            }
+          }
+        ],
+        "tax": {
+          "total_amount_minor": 209,
+          "inclusive": false,
+          "components": [
+            {
+              "kind": "sales",
+              "jurisdiction": "US-NY",
+              "rate_basis_points": 725,
+              "amount_minor": 209
+            }
+          ]
+        },
+        "shipping": {
+          "amount_minor": 499,
+          "method": "same-day-delivery",
+          "destination": {
+            "country": "US",
+            "region": "NY",
+            "postal_code": "10025",
+            "address_commitment": "sha-256:g4PULE6U1LPNwfpQ8raSdIpSGzHmw6ejdqmT8KdxDGM"
+          }
+        },
+        "totals": {
+          "subtotal_minor": 2876,
+          "tax_minor": 209,
+          "shipping_minor": 499,
+          "discount_minor": 0,
+          "grand_total_minor": 3584
+        },
+        "fulfillment_source": {
+          "kind": "ship-from-store",
+          "location_id": "store:northside-04",
+          "marketplace_seller_id": null
+        },
+        "recurrence": null,
+        "substitution_policy": {
+          "mode": "equivalent-only",
+          "allowed_substitutions": [],
+          "max_unit_amount_delta_minor": 100,
+          "notify_principal": true
+        }
+      },
+      "expected_jcs": "{\"attempt_nonce\":\"Y2hMd18wUXZOZTdrUmpEcVM\",\"checkout_id\":\"chk:2026-W35-northside-0417\",\"created_at\":\"2026-08-27T14:02:11Z\",\"currency\":\"USD\",\"currency_minor_unit_exponent\":2,\"fulfillment_source\":{\"kind\":\"ship-from-store\",\"location_id\":\"store:northside-04\",\"marketplace_seller_id\":null},\"line_items\":[{\"fulfillment_source\":{\"kind\":\"ship-from-store\",\"location_id\":\"store:northside-04\",\"marketplace_seller_id\":null},\"line_id\":\"li-001\",\"quantity\":2,\"sku\":\"SKU-BREAD-SOURDOUGH\",\"title\":\"Sourdough loaf, 700 g\",\"total_amount_minor\":1098,\"unit_amount_minor\":549,\"variant_id\":null},{\"fulfillment_source\":{\"kind\":\"ship-from-store\",\"location_id\":\"store:northside-04\",\"marketplace_seller_id\":null},\"line_id\":\"li-002\",\"quantity\":1,\"sku\":\"SKU-COLA-CANS\",\"title\":\"Fizzwater Cola, 24-pack cans\",\"total_amount_minor\":1349,\"unit_amount_minor\":1349,\"variant_id\":\"24-pack\"},{\"fulfillment_source\":{\"kind\":\"ship-from-store\",\"location_id\":\"store:northside-04\",\"marketplace_seller_id\":null},\"line_id\":\"li-003\",\"quantity\":1,\"sku\":\"SKU-MILK-WHOLE\",\"title\":\"Whole milk, 1 gallon\",\"total_amount_minor\":429,\"unit_amount_minor\":429,\"variant_id\":\"1-gallon\"}],\"profile\":\"mandatepatch/profile/v1\",\"recurrence\":null,\"seller\":{\"domain\":\"northsidemarket.example\",\"legal_name\":\"Northside Market LLC\",\"merchant_category_code\":\"5411\",\"seller_id\":\"seller:northside-market\"},\"shipping\":{\"amount_minor\":499,\"destination\":{\"address_commitment\":\"sha-256:g4PULE6U1LPNwfpQ8raSdIpSGzHmw6ejdqmT8KdxDGM\",\"country\":\"US\",\"postal_code\":\"10025\",\"region\":\"NY\"},\"method\":\"same-day-delivery\"},\"substitution_policy\":{\"allowed_substitutions\":[],\"max_unit_amount_delta_minor\":100,\"mode\":\"equivalent-only\",\"notify_principal\":true},\"tax\":{\"components\":[{\"amount_minor\":209,\"jurisdiction\":\"US-NY\",\"kind\":\"sales\",\"rate_basis_points\":725}],\"inclusive\":false,\"total_amount_minor\":209},\"totals\":{\"discount_minor\":0,\"grand_total_minor\":3584,\"shipping_minor\":499,\"subtotal_minor\":2876,\"tax_minor\":209}}",
+      "expected_digest": "sha-256:GSyNlpqi5EbufXUbUTfNmtv4dqJOgvxATpmeRD1S1Lw"
+    },
+    {
+      "name": "commitment-variant-null-sorts-first",
+      "mode": "commitment",
+      "note": "Line-item sort key is (sku, variant_id, line_id); an explicit null variant_id sorts as the empty string, i.e. before any non-empty variant.",
+      "input": {
+        "profile": "mandatepatch/profile/v1",
+        "checkout_id": "chk-sort-demo",
+        "created_at": "2026-08-27T00:00:00Z",
+        "seller": {
+          "seller_id": "seller:demo",
+          "legal_name": "Demo",
+          "merchant_category_code": null,
+          "domain": null
+        },
+        "currency": "USD",
+        "currency_minor_unit_exponent": 2,
+        "line_items": [
+          {
+            "line_id": "b",
+            "sku": "SKU-X",
+            "variant_id": "24-pack",
+            "title": "X, 24-pack",
+            "quantity": 1,
+            "unit_amount_minor": 100,
+            "total_amount_minor": 100,
+            "fulfillment_source": {
+              "kind": "digital",
+              "location_id": null,
+              "marketplace_seller_id": null
+            }
+          },
+          {
+            "line_id": "a",
+            "sku": "SKU-X",
+            "variant_id": null,
+            "title": "X",
+            "quantity": 1,
+            "unit_amount_minor": 100,
+            "total_amount_minor": 100,
+            "fulfillment_source": {
+              "kind": "digital",
+              "location_id": null,
+              "marketplace_seller_id": null
+            }
+          }
+        ],
+        "tax": {
+          "total_amount_minor": 0,
+          "inclusive": false,
+          "components": []
+        },
+        "shipping": {
+          "amount_minor": 0,
+          "method": null,
+          "destination": {
+            "country": null,
+            "region": null,
+            "postal_code": null,
+            "address_commitment": null
+          }
+        },
+        "totals": {
+          "subtotal_minor": 200,
+          "tax_minor": 0,
+          "shipping_minor": 0,
+          "discount_minor": 0,
+          "grand_total_minor": 200
+        },
+        "fulfillment_source": {
+          "kind": "digital",
+          "location_id": null,
+          "marketplace_seller_id": null
+        },
+        "recurrence": null,
+        "substitution_policy": {
+          "mode": "none",
+          "allowed_substitutions": [],
+          "max_unit_amount_delta_minor": null,
+          "notify_principal": false
+        }
+      },
+      "expected_jcs": "{\"checkout_id\":\"chk-sort-demo\",\"created_at\":\"2026-08-27T00:00:00Z\",\"currency\":\"USD\",\"currency_minor_unit_exponent\":2,\"fulfillment_source\":{\"kind\":\"digital\",\"location_id\":null,\"marketplace_seller_id\":null},\"line_items\":[{\"fulfillment_source\":{\"kind\":\"digital\",\"location_id\":null,\"marketplace_seller_id\":null},\"line_id\":\"a\",\"quantity\":1,\"sku\":\"SKU-X\",\"title\":\"X\",\"total_amount_minor\":100,\"unit_amount_minor\":100,\"variant_id\":null},{\"fulfillment_source\":{\"kind\":\"digital\",\"location_id\":null,\"marketplace_seller_id\":null},\"line_id\":\"b\",\"quantity\":1,\"sku\":\"SKU-X\",\"title\":\"X, 24-pack\",\"total_amount_minor\":100,\"unit_amount_minor\":100,\"variant_id\":\"24-pack\"}],\"profile\":\"mandatepatch/profile/v1\",\"recurrence\":null,\"seller\":{\"domain\":null,\"legal_name\":\"Demo\",\"merchant_category_code\":null,\"seller_id\":\"seller:demo\"},\"shipping\":{\"amount_minor\":0,\"destination\":{\"address_commitment\":null,\"country\":null,\"postal_code\":null,\"region\":null},\"method\":null},\"substitution_policy\":{\"allowed_substitutions\":[],\"max_unit_amount_delta_minor\":null,\"mode\":\"none\",\"notify_principal\":false},\"tax\":{\"components\":[],\"inclusive\":false,\"total_amount_minor\":0},\"totals\":{\"discount_minor\":0,\"grand_total_minor\":200,\"shipping_minor\":0,\"subtotal_minor\":200,\"tax_minor\":0}}",
+      "expected_digest": "sha-256:Fzcc2lD616qjDqFDM0Qbf1a-r-7x8qd85LF4zbb-YZI"
+    }
+  ],
+  "rejects": [
+    {
+      "name": "reject-non-integer-number",
+      "mode": "value",
+      "note": "PROFILE-DEFINED: money is integer minor units. A decimal amount is a profile violation, not a rounding question.",
+      "input": {
+        "amount": 1.5
+      },
+      "expected_error_code": "E_NON_INTEGER_NUMBER"
+    },
+    {
+      "name": "reject-integer-out-of-range",
+      "mode": "value",
+      "note": "Outside the exactly-representable IEEE-754 integer range, so the two ports could disagree. Rejected rather than approximated.",
+      "input": {
+        "n": 9007199254740992
+      },
+      "expected_error_code": "E_INTEGER_OUT_OF_RANGE"
+    },
+    {
+      "name": "reject-lone-surrogate",
+      "mode": "value",
+      "note": "An unpaired surrogate has no UTF-8 encoding. Rejected rather than replaced with U+FFFD, which would silently change the committed text.",
+      "input": {
+        "s": "\ud800"
+      },
+      "expected_error_code": "E_LONE_SURROGATE"
+    },
+    {
+      "name": "reject-duplicate-key-after-nfc",
+      "mode": "value",
+      "note": "Two distinct JSON keys that collide once normalized to NFC. Merging them would let two different documents hash to one commitment, so the profile refuses the document.",
+      "input": {
+        "\u00e9": 1,
+        "e\u0301": 2
+      },
+      "expected_error_code": "E_DUPLICATE_KEY_AFTER_NFC"
+    }
+  ]
+}
