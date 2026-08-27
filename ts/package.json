@@ -1,6 +1,6 @@
 {
   "name": "mandatepatch",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Reference implementation of the artifact layer described in Technical Disclosure Commons #11517, \"Mandate Lifecycle Extensions for Agentic Payment Credentials\". Schemas, types, and the canonical commitment. No scorer, no service, no policy engine.",
   "license": "Apache-2.0",
   "author": "Matt Kirby",

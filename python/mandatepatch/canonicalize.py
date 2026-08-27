@@ -24,14 +24,15 @@ from __future__ import annotations
 import base64
 import hashlib
 import unicodedata
-from typing import Any, Callable, Dict, List, Tuple
+from collections.abc import Callable
+from typing import Any
 
 __all__ = [
     "DEFAULT_PROFILE_ID",
     "CanonicalizationError",
     "CanonicalizationProfile",
-    "canonicalize",
     "canonical_commitment",
+    "canonicalize",
     "compare_utf16",
     "digest",
     "get_profile",
@@ -138,14 +139,14 @@ _ESCAPES = {
 
 def _serialize_string(value: str) -> str:
     """RFC 8785 section 3.2.2.2 string escaping (the ECMAScript JSON.stringify quote algorithm)."""
-    out: List[str] = ['"']
+    out: list[str] = ['"']
     for ch in value:
         code = ord(ch)
         esc = _ESCAPES.get(code)
         if esc is not None:
             out.append(esc)
         elif code < 0x20:
-            out.append("\\u%04x" % code)
+            out.append(f"\\u{code:04x}")
         else:
             out.append(ch)
     out.append('"')
@@ -171,7 +172,7 @@ def prepare(value: Any, path: str = "$") -> Any:
     if isinstance(value, (list, tuple)):
         return [prepare(item, f"{path}[{i}]") for i, item in enumerate(value)]
     if isinstance(value, dict):
-        out: Dict[str, Any] = {}
+        out: dict[str, Any] = {}
         seen = set()
         for key in value:
             if not isinstance(key, str):
@@ -228,7 +229,7 @@ def sort_line_items(value: Any) -> Any:
     if not isinstance(items, list):
         return value
 
-    def key_of(item: Any) -> Tuple[bytes, bytes, bytes]:
+    def key_of(item: Any) -> tuple[bytes, bytes, bytes]:
         if not isinstance(item, dict):
             return (b"", b"", b"")
         def s(k: str) -> bytes:
@@ -260,7 +261,7 @@ class CanonicalizationProfile:
         self,
         profile_id: str,
         canonicalize_fn: Callable[[Any], str],
-        commitment_fn: Callable[[Any], Dict[str, str]],
+        commitment_fn: Callable[[Any], dict[str, str]],
     ) -> None:
         self.id = profile_id
         self._canonicalize = canonicalize_fn
@@ -274,7 +275,7 @@ class CanonicalizationProfile:
         """``sha-256:<base64url>`` over the canonical string. Use for artifact hashes."""
         return hash_canonical(self._canonicalize(value))
 
-    def canonical_commitment(self, commitment: Any) -> Dict[str, str]:
+    def canonical_commitment(self, commitment: Any) -> dict[str, str]:
         """Section 4.3 commitment: prepare, apply the line-item ordering rule, serialize, hash."""
         return self._commitment(commitment)
 
@@ -283,14 +284,14 @@ def _v1_canonicalize(value: Any) -> str:
     return _serialize_prepared(prepare(value))
 
 
-def _v1_commitment(commitment: Any) -> Dict[str, str]:
+def _v1_commitment(commitment: Any) -> dict[str, str]:
     canonical = _serialize_prepared(sort_line_items(prepare(commitment)))
     return {"canonical": canonical, "digest": hash_canonical(canonical)}
 
 
 profile_v1 = CanonicalizationProfile(DEFAULT_PROFILE_ID, _v1_canonicalize, _v1_commitment)
 
-_REGISTRY: Dict[str, CanonicalizationProfile] = {profile_v1.id: profile_v1}
+_REGISTRY: dict[str, CanonicalizationProfile] = {profile_v1.id: profile_v1}
 
 
 def register_profile(profile: CanonicalizationProfile) -> None:
@@ -316,6 +317,6 @@ def digest(value: Any) -> str:
     return profile_v1.digest(value)
 
 
-def canonical_commitment(commitment: Any) -> Dict[str, str]:
+def canonical_commitment(commitment: Any) -> dict[str, str]:
     """Convenience wrapper over the default profile."""
     return profile_v1.canonical_commitment(commitment)

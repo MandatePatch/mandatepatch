@@ -1,3 +1,33 @@
+## v0.1.3 — CI reproducibility (2026-08-28)
+
+First push went red. Both failures were environment assumptions, not defects in the
+artifacts: the suite passed locally only because the machine it was verified on had
+been primed by the build that produced it.
+
+- **`scripts/validate-examples.sh` now fetches the plugin it uses.** It invoked
+  `npx --yes ajv-cli@5 ... -c ajv-formats`, which fetches ajv-cli only and then asks
+  it to load a plugin that was never fetched. It passed on any machine with
+  `ajv-formats` installed globally and failed everywhere else. Now
+  `npx --yes -p ajv-cli@5 -p ajv-formats ajv validate ...`, which carries its own
+  dependencies.
+- **Ruff rule selection is explicit.** `[tool.ruff]` set only `line-length` and
+  `target-version`, leaving the rule set to ruff's defaults - which are not stable
+  across releases. CI installed a ruff whose defaults include `UP` and `RUF`; the
+  local machine had one whose defaults did not. Same code, same command, 0 errors
+  here and 65 there. `[tool.ruff.lint] select` now names the rules.
+- **The 65 findings were fixed, not silenced.** They were correct for a Python 3.11
+  target: `typing.Dict/List/Tuple` to builtins (28), `Optional[X]` to `X | None` (28),
+  `Callable` from `collections.abc`, `__all__` sorted, one printf format to an f-string.
+  The last of these is in the RFC 8785 string-escaping path, so the parity digest was
+  re-derived after the change and is **unchanged**, confirming the edits were syntactic.
+- **ruff, mypy and jsonschema are pinned to exact versions** in `ci.yml`. Unpinned
+  linters mean CI behavior changes when upstream releases, which is the wrong default
+  anywhere and a contradiction in a repository whose claim is reproducibility.
+
+**Parity digest:** `b9b75ff31b16a016c947c714f1c7d9f664e623d6668be3799f5a72527933a0e4`
+- unchanged from v0.1.2. No artifact, schema, vector or canonicalization behavior
+changed in this release.
+
 ## v0.1.2 — errata alignment, verified (2026-08-28)
 
 Completes the v0.1.1 errata work. v0.1.1 declared the new field but shipped without

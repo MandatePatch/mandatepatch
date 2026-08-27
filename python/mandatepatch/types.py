@@ -11,7 +11,7 @@ Extensions for Agentic Payment Credentials" (Matt Kirby, CC-BY).
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Literal, NotRequired, Optional, TypedDict
+from typing import Any, Literal, NotRequired, TypedDict
 
 #: ``sha-256:<base64url-unpadded>`` under ``mandatepatch/profile/v1``. PROFILE-DEFINED encoding.
 Hash = str
@@ -66,7 +66,7 @@ class Anchor(TypedDict):
     log_id: str
     epoch: int
     #: Merkle audit path, leaf-ward to root-ward, base64url unpadded.
-    inclusion_proof: List[str]
+    inclusion_proof: list[str]
 
 
 class KeyBinding(TypedDict):
@@ -112,14 +112,14 @@ class HumanSignature(KeyBinding):
 
 class FulfillmentSource(TypedDict):
     kind: Literal["ship-from-warehouse", "ship-from-store", "pickup", "marketplace-seller", "digital"]
-    location_id: Optional[str]
-    marketplace_seller_id: Optional[str]
+    location_id: str | None
+    marketplace_seller_id: str | None
 
 
 class LineItem(TypedDict):
     line_id: str
     sku: str
-    variant_id: Optional[str]
+    variant_id: str | None
     title: str
     quantity: int
     unit_amount_minor: int
@@ -137,19 +137,19 @@ class TaxComponent(TypedDict):
 class Tax(TypedDict):
     total_amount_minor: int
     inclusive: bool
-    components: List[TaxComponent]
+    components: list[TaxComponent]
 
 
 class Destination(TypedDict):
-    country: Optional[str]
-    region: Optional[str]
-    postal_code: Optional[str]
-    address_commitment: Optional[Hash]
+    country: str | None
+    region: str | None
+    postal_code: str | None
+    address_commitment: Hash | None
 
 
 class Shipping(TypedDict):
     amount_minor: int
-    method: Optional[str]
+    method: str | None
     destination: Destination
 
 
@@ -164,31 +164,31 @@ class Totals(TypedDict):
 class Recurrence(TypedDict):
     interval: Literal["day", "week", "month", "year"]
     interval_count: int
-    occurrences: Optional[int]
-    until: Optional[Timestamp]
+    occurrences: int | None
+    until: Timestamp | None
     first_charge_at: Timestamp
     amount_variability: Literal["fixed", "variable"]
-    max_amount_minor: Optional[int]
+    max_amount_minor: int | None
 
 
 class AllowedSubstitution(TypedDict):
     line_id: str
     sku: str
-    variant_id: Optional[str]
+    variant_id: str | None
 
 
 class SubstitutionPolicy(TypedDict):
     mode: Literal["none", "equivalent-only", "enumerated", "merchant-discretion"]
-    allowed_substitutions: List[AllowedSubstitution]
-    max_unit_amount_delta_minor: Optional[int]
+    allowed_substitutions: list[AllowedSubstitution]
+    max_unit_amount_delta_minor: int | None
     notify_principal: bool
 
 
 class Seller(TypedDict):
     seller_id: str
     legal_name: str
-    merchant_category_code: Optional[str]
-    domain: Optional[str]
+    merchant_category_code: str | None
+    domain: str | None
 
 
 class CanonicalCommitment(TypedDict):
@@ -204,12 +204,12 @@ class CanonicalCommitment(TypedDict):
     seller: Seller
     currency: str
     currency_minor_unit_exponent: int
-    line_items: List[LineItem]
+    line_items: list[LineItem]
     tax: Tax
     shipping: Shipping
     totals: Totals
     fulfillment_source: FulfillmentSource
-    recurrence: Optional[Recurrence]
+    recurrence: Recurrence | None
     substitution_policy: SubstitutionPolicy
 
 
@@ -223,7 +223,7 @@ class ScoringStack(TypedDict):
     tokenizer_hash: Hash
     normalization_rules_hash: Hash
     preprocessing_hash: Hash
-    quantization: Optional[str]
+    quantization: str | None
     runtime_configuration_hash: Hash
 
 
@@ -236,12 +236,12 @@ class TaxonomyCategory(TypedDict):
 class CategoryTaxonomy(TypedDict):
     taxonomy_id: str
     taxonomy_version: int
-    categories: List[TaxonomyCategory]
+    categories: list[TaxonomyCategory]
 
 
 class ScoringDeployment(TypedDict):
     kind: Literal["wallet-side", "gateway-side", "tee-attested"]
-    enclave_measurement: Optional[Hash]
+    enclave_measurement: Hash | None
 
 
 class SemanticGate(TypedDict):
@@ -266,7 +266,7 @@ class SemanticGate(TypedDict):
     cumulative_divergence_budget_micro: int
     attempt_budget: int
     cart_revision_throttle: int
-    agent_visible_outcome_space: List[str]
+    agent_visible_outcome_space: list[str]
     score_disclosure: Literal["encrypted-to-principal-and-issuer"]
 
 
@@ -277,7 +277,7 @@ class Predicate(TypedDict):
     kind: Literal["machine-enforceable", "semantic", "descriptive", "cumulative-budget", "freshness"]
     owner: Literal["principal", "issuer", "lender", "program", "third-party"]
     patchable: bool
-    expression: Dict[str, Any]
+    expression: dict[str, Any]
     description: str
 
 
@@ -289,7 +289,7 @@ class LineItemScore(TypedDict):
 
 class EncryptedScore(TypedDict):
     ciphertext: str
-    recipients: List[Literal["principal", "issuer"]]
+    recipients: list[Literal["principal", "issuer"]]
     encryption_alg: str
 
 
@@ -305,7 +305,7 @@ class RecordSignature(KeyBinding):
 
 class DivergenceRecordDeployment(TypedDict):
     kind: Literal["wallet-side", "gateway-side", "tee-attested"]
-    enclave_attestation: Optional[str]
+    enclave_attestation: str | None
 
 
 class DivergenceStack(TypedDict):
@@ -329,16 +329,16 @@ class DivergenceRecord(TypedDict):
     category_id_applied: str
     aggregation: Literal["per-line-item-worst-case"]
     cart_level_score_commitment: Hash
-    line_item_scores: List[LineItemScore]
+    line_item_scores: list[LineItemScore]
     score_commitment: Hash
     encrypted_score: EncryptedScore
     outcome: Literal["pass", "suspend"]
-    reason_codes: List[str]
-    flagged_line_ids: List[str]
-    failing_predicate_ids: List[str]
+    reason_codes: list[str]
+    flagged_line_ids: list[str]
+    failing_predicate_ids: list[str]
     cumulative_divergence_after_micro: int
     attempt_index: int
-    previous_record_hash: Optional[Hash]
+    previous_record_hash: Hash | None
     signature: RecordSignature
 
 
@@ -367,7 +367,7 @@ class MandatePatch(TypedDict):
     #: "monotonic within the mandate"
     patch_sequence: int
     #: "one or more (violated_predicate_id, value_old, value_new) tuples, all covered by the single human_signature below"
-    violations: List[Violation]
+    violations: list[Violation]
     #: "the Section 4.3 canonical commitment"
     checkout_commitment: Hash
     #: "binds to the paused agent execution state"
@@ -394,8 +394,8 @@ class MandatePatch(TypedDict):
 class HeadSource(TypedDict):
     kind: Literal["transparency-log", "issuer-registry"]
     cosigned_heads: bool
-    witnesses: List[str]
-    operator_id: Optional[str]
+    witnesses: list[str]
+    operator_id: str | None
     trust_model: str
 
 
@@ -413,7 +413,7 @@ class InFlightResolution(TypedDict):
     authorized_before: Literal["honor", "void"]
     in_flight_at: Literal["honor-within-delta", "re-evaluate-at-capture", "void"]
     initiated_after: Literal["evaluate-against-successor"]
-    evaluation_points: List[str]
+    evaluation_points: list[str]
 
 
 class ConsumeAuthority(TypedDict):
@@ -431,16 +431,16 @@ class SupersessionRecord(TypedDict):
     action: Literal["supersede", "revoke"]
     supersedes: Hash
     predecessor_version: int
-    successor_mandate_hash: Optional[Hash]
-    successor_version: Optional[int]
+    successor_mandate_hash: Hash | None
+    successor_version: int | None
     epoch: int
     family_head: Hash
     head_source: HeadSource
     staleness_bound_seconds: int
     revocation_mode: Literal["synchronous-head-check", "bounded-staleness"]
-    re_baseline: Optional[ReBaseline]
+    re_baseline: ReBaseline | None
     in_flight_resolution: InFlightResolution
-    voided_patch_nullifiers: List[str]
+    voided_patch_nullifiers: list[str]
     nullifier_epoch_update_ordering: Literal["nullify-then-advance", "advance-then-nullify", "atomic"]
     atomicity_window_ms: int
     consume_authority: ConsumeAuthority
@@ -471,9 +471,9 @@ class Instruction(TypedDict):
 
     source_text: str
     source_bytes_hash: Hash
-    machine_interpretation: Dict[str, Any]
+    machine_interpretation: dict[str, Any]
     machine_interpretation_hash: Hash
-    surfaced_conflicts: List[SurfacedConflict]
+    surfaced_conflicts: list[SurfacedConflict]
 
 
 class CumulativeScopeBudget(TypedDict):
@@ -499,7 +499,7 @@ class Freshness(TypedDict):
     revocation_mode: Literal["synchronous-head-check", "bounded-staleness"]
     head_source: Literal["transparency-log", "issuer-registry"]
     cosigned_heads_required: bool
-    evaluation_points: List[str]
+    evaluation_points: list[str]
 
 
 class ChallengePolicy(TypedDict):
@@ -519,8 +519,8 @@ class PresentationPolicy(TypedDict):
     neutralization_required: bool
     render_state_hash_required: bool
     minimum_attestation_tier: AttestationTier
-    font_hash: Optional[Hash]
-    locale: Optional[str]
+    font_hash: Hash | None
+    locale: str | None
     render_to_input_event_binding_required: bool
 
 
@@ -532,18 +532,18 @@ class Mandate(TypedDict):
     binding_profile: str
     mandate_family_id: str
     mandate_version: int
-    supersedes: Optional[Hash]
+    supersedes: Hash | None
     epoch: int
     instruction: Instruction
     semantic_gate: SemanticGate
-    predicates: List[Predicate]
+    predicates: list[Predicate]
     patch_chain_governance: PatchChainGovernance
     freshness: Freshness
     consume_authority: ConsumeAuthority
     challenge_policy: ChallengePolicy
     presentation_policy: PresentationPolicy
     issued_at: Timestamp
-    expiry: Optional[Timestamp]
+    expiry: Timestamp | None
     render_state_hash: NotRequired[Hash]
     attestation_tier: NotRequired[AttestationTier]
     human_signature: HumanSignature

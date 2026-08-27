@@ -35,7 +35,7 @@ jobs:
       - name: schema conformance, including mutations that must be rejected
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install jsonschema
+          python3 -m pip install 'jsonschema==4.26.0'
           python3 scripts/validate-schemas.py
 
   typescript:
@@ -82,7 +82,7 @@ jobs:
       - name: install dev tooling
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install ruff mypy jsonschema
+          python3 -m pip install 'ruff==0.15.11' 'mypy==1.20.2' 'jsonschema==4.26.0'
 
       - name: lint
         run: ruff check mandatepatch
