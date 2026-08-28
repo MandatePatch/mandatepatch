@@ -23,7 +23,7 @@ from .canonicalize import (
     sort_line_items,
 )
 
-__version__ = "0.0.1"
+__version__ = "0.1.4"
 
 __all__ = [
     "DEFAULT_PROFILE_ID",

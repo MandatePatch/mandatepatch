@@ -1,3 +1,23 @@
+## v0.1.4 — version-string invariant observed in CI (2026-08-28)
+
+`python/mandatepatch/__init__.py` declared `__version__ = "0.0.1"` while
+`python/pyproject.toml` and `ts/package.json` declared `0.1.3`. Nothing in the
+suite compared the three sources, so the disagreement was unobservable — the
+same failure mode that withdrew v0.1.1.
+
+- All three sources now declare `0.1.4`. Writing `0.1.3` into `__init__.py`
+  would have asserted that the v0.1.3 tree carried that string. It did not.
+- `scripts/check-versions.py` reads the three sources with the stdlib only
+  (`tomllib`, `json`, `re`) and exits 1 if they differ.
+- The `schema validation` job runs the checker before schema work. A committed
+  checker that CI never invokes is not a check.
+- `ts/package.json` repository URL case corrected to `MandatePatch/mandatepatch`.
+  No version export exists in `ts/src`; a fourth source was not invented.
+
+**Parity digest:** `b9b75ff31b16a016c947c714f1c7d9f664e623d6668be3799f5a72527933a0e4`
+- unchanged from v0.1.2 / v0.1.3. Canonicalization, schemas, vectors, and
+  examples were not touched.
+
 ## v0.1.3 — CI reproducibility (2026-08-28)
 
 First push went red. Both failures were environment assumptions, not defects in the

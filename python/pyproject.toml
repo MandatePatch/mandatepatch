@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mandatepatch"
-version = "0.1.3"
+version = "0.1.4"
 description = "Reference implementation of the artifact layer described in Technical Disclosure Commons #11517, \"Mandate Lifecycle Extensions for Agentic Payment Credentials\". Schemas, types, and the canonical commitment. No scorer, no service, no policy engine."
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
