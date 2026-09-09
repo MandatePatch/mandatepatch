@@ -20,6 +20,8 @@ This software is a reference implementation of the artifact layer described in:
     Technical Disclosure Commons, Defensive Publications Series #11517,
     August 2026. https://www.tdcommons.org/dpubs_series/11517
 
+A US provisional patent application (No. 64/141,321, filed 26 August 2026) precedes the disclosure and this software.
+
 That disclosure is published under a Creative Commons Attribution 4.0 License
 (CC BY 4.0) and is separate from this software. Schema field descriptions in
 schemas/*.json quote and closely paraphrase the disclosure text under that
