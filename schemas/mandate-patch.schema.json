@@ -65,7 +65,7 @@
     "nonce": {
       "type": "string",
       "minLength": 1,
-      "description": "§4.2, 'nonce single-use per mandate family ... all three enter the signed transcript'. The patch 'is consumed on use' (§4.1) and 'is nullified at the consume authority (Section 5.3) upon authorization' (§4.2); §5.3: 'Exactly-once patch consumption across heterogeneous rails is achieved by construction at that authority, not assumed of the rails.' PROFILE-DEFINED: nonce length and encoding, and the nullifier derivation — §7 specifies it is 'domain-separated over issuer, mandate family, version, patch sequence, checkout, rail, and purpose'."
+      "description": "§4.2, 'nonce single-use per mandate family ... all three enter the signed transcript'. The patch 'is consumed on use' (§4.1) and 'is nullified at the consume authority (Section 5.3) upon authorization' (§4.2); §5.3: 'Exactly-once patch consumption across heterogeneous rails is achieved by construction at that authority, not assumed of the rails.' PROFILE-DEFINED: nonce length and encoding, and the nullifier derivation — §7 (v2.3 erratum) specifies it is 'domain-separated over issuer, mandate family, version, patch sequence, checkout, and purpose'."
     },
     "issued_at": {
       "type": "string",
