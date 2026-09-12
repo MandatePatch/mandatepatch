@@ -111,7 +111,7 @@
     },
     "voided_patch_nullifiers": {
       "type": "array",
-      "description": "§5.1, fourth residual: 'supersession voids unconsumed patches against superseded versions.' Nullifiers of the patches this record voids; empty array when none were outstanding. §7: 'Nullifier derivation is domain-separated over issuer, mandate family, version, patch sequence, checkout, rail, and purpose.'",
+      "description": "§5.1, fourth residual: 'supersession voids unconsumed patches against superseded versions.' Nullifiers of the patches this record voids; empty array when none were outstanding. §7 (v2.3 erratum): 'Nullifier derivation is domain-separated over issuer, mandate family, version, patch sequence, checkout, and purpose.'",
       "items": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" }
     },
     "nullifier_epoch_update_ordering": { "enum": ["nullify-then-advance", "advance-then-nullify", "atomic"], "description": "§5.1: 'with the deployment required to disclose its nullifier-to-epoch update ordering'. §8: 'The atomicity window between patch nullification and epoch advancement, if any, and its update ordering are disclosed.' PROFILE-DEFINED: which ordering a deployment uses — the paper requires disclosure, not a particular choice." },

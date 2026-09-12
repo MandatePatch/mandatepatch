@@ -10,6 +10,8 @@ This repository implements the objects those mechanisms exchange, and the determ
 
 Licensed under Apache-2.0. The disclosure itself is CC BY 4.0 and separately licensed; see `NOTICE`.
 
+A US provisional patent application (No. 64/141,321, filed 26 August 2026) precedes both the disclosure and this repository. The Apache-2.0 licence governs this code; the CC BY 4.0 licence governs the disclosure text; neither is a statement about the application.
+
 ## The artifact layer ships first
 
 This repository defines the objects and their canonical form. It deliberately implements **no scorer, no service, and no policy engine**. Those are separable concerns and are out of scope for the reference implementation:
