@@ -88,10 +88,10 @@ def _normalize_string(value: str, path: str) -> str:
     """PROFILE-DEFINED: Unicode form.
 
     v1 normalizes every object key and every string value to NFC before
-    serialization. Section 8 lists "homoglyphs" and "locale separator confusion"
-    among the display attacks "the canonicalization profile answers"; NFC is the
-    minimum needed for two parties that typed the same text to hash the same
-    bytes. Lone surrogates are rejected rather than replaced.
+    serialization. NFC is canonical equivalence (e + U+0301 → é) so two parties
+    that typed the same text hash the same bytes. It does not neutralize
+    homoglyphs; that is section 6.3 renderer territory (draft-schrock). Lone
+    surrogates are rejected rather than replaced.
     """
     for ch in value:
         if 0xD800 <= ord(ch) <= 0xDFFF:
