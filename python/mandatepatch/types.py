@@ -199,7 +199,9 @@ class CanonicalCommitment(TypedDict):
     """
 
     profile: str
-    checkout_id: str
+      checkout_id: str
+    #: §4.3 (v2.3 erratum): 16-byte attempt distinguisher; required.
+    attempt_nonce: str
     created_at: Timestamp
     seller: Seller
     currency: str
