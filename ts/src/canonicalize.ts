@@ -67,10 +67,10 @@ export function compareUtf16(a: string, b: string): number {
 
 /**
  * PROFILE-DEFINED: Unicode form. v1 normalizes every object key and every string
- * value to NFC before serialization. §8 lists "homoglyphs" and "locale separator
- * confusion" among the display attacks "the canonicalization profile answers";
- * NFC is the minimum needed for two parties that typed the same text to hash the
- * same bytes. Lone surrogates are rejected rather than replaced.
+ * value to NFC before serialization. NFC is canonical equivalence (e + U+0301 → é)
+ * so two parties that typed the same text hash the same bytes. It does not
+ * neutralize homoglyphs; that is §6.3 renderer territory (draft-schrock). Lone
+ * surrogates are rejected rather than replaced.
  */
 function normalizeString(value: string, path: string): string {
   for (let i = 0; i < value.length; i++) {
