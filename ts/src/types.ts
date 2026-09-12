@@ -161,7 +161,9 @@ export interface SubstitutionPolicy {
  */
 export interface CanonicalCommitment {
   profile: string;
-  checkout_id: string;
+    checkout_id: string;   
+  /** §4.3 (v2.3 erratum): 16-byte attempt distinguisher; required. */   
+  attempt_nonce: string;
   created_at: Timestamp;
   seller: {
     seller_id: string;
