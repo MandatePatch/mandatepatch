@@ -41,6 +41,9 @@ jobs:
           python3 -m pip install 'jsonschema==4.26.0'
           python3 scripts/validate-schemas.py
 
+      - name: every $id resolves, and resolves to these bytes
+        run: python3 scripts/check-schema-publication.py
+
   typescript:
     name: typescript
     runs-on: ubuntu-latest
