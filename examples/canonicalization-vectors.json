@@ -571,6 +571,21 @@
         "e\u0301": 2
       },
       "expected_error_code": "E_DUPLICATE_KEY_AFTER_NFC"
+    },
+    {
+      "name": "reject-duplicate-line-item-key",
+      "mode": "commitment",
+      "note": "Two line items with the same (sku, variant_id, line_id) are rejected. A non-string variant_id is the empty key, the same coercion as the sort.",
+      "input": {
+        "profile": "mandatepatch/profile/v1",
+        "checkout_id": "c",
+        "attempt_nonce": "bnVsbFZhcmlhbnRTb3J0MQ",
+        "line_items": [
+          {"line_id": "same", "sku": "SKU-X", "variant_id": "v", "title": "A", "quantity": 1, "unit_amount_minor": 1, "total_amount_minor": 1},
+          {"line_id": "same", "sku": "SKU-X", "variant_id": "v", "title": "B", "quantity": 1, "unit_amount_minor": 2, "total_amount_minor": 2}
+        ]
+      },
+      "expected_error_code": "E_DUPLICATE_LINE_ITEM_KEY"
     }
   ]
 }

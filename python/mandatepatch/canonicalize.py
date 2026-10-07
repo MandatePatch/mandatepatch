@@ -287,8 +287,35 @@ def _v1_canonicalize(value: Any) -> str:
     return _serialize_prepared(prepare(value))
 
 
+def _line_item_identity(item: Any) -> tuple[str, str, str]:
+    if not isinstance(item, dict):
+        return ("", "", "")
+    def s(k: str) -> str:
+        v = item.get(k)
+        return v if isinstance(v, str) else ""
+    return (s("sku"), s("variant_id"), s("line_id"))
+
+
+def _reject_duplicate_line_items(commitment: Any) -> None:
+    items = commitment.get("line_items") if isinstance(commitment, dict) else None
+    if not isinstance(items, list):
+        return
+    seen: set[tuple[str, str, str]] = set()
+    for i, item in enumerate(items):
+        key = _line_item_identity(item)
+        if key in seen:
+            _fail(
+                "E_DUPLICATE_LINE_ITEM_KEY",
+                f"$.line_items[{i}]",
+                "line items are not unique on (sku, variant_id, line_id)",
+            )
+        seen.add(key)
+
+
 def _v1_commitment(commitment: Any) -> dict[str, str]:
-    canonical = _serialize_prepared(sort_line_items(prepare(commitment)))
+    prepared = prepare(commitment)
+    _reject_duplicate_line_items(prepared)
+    canonical = _serialize_prepared(sort_line_items(prepared))
     return {"canonical": canonical, "digest": hash_canonical(canonical)}
 
 

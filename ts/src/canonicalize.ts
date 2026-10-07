@@ -32,7 +32,8 @@ export type CanonicalizationErrorCode =
   | "E_NON_INTEGER_NUMBER"
   | "E_INTEGER_OUT_OF_RANGE"
   | "E_LONE_SURROGATE"
-  | "E_DUPLICATE_KEY_AFTER_NFC";
+  | "E_DUPLICATE_KEY_AFTER_NFC"
+  | "E_DUPLICATE_LINE_ITEM_KEY";
 
 export class CanonicalizationError extends Error {
   readonly code: CanonicalizationErrorCode;
@@ -242,6 +243,32 @@ export interface CanonicalizationProfile {
   canonicalCommitment(commitment: unknown): { canonical: string; digest: string };
 }
 
+
+function lineItemIdentity(item: JsonValue): [string, string, string] {
+  if (item === null || typeof item !== "object" || Array.isArray(item)) return ["", "", ""];
+  const rec = item as { [key: string]: JsonValue };
+  const s = (k: string) => (typeof rec[k] === "string" ? (rec[k] as string) : "");
+  return [s("sku"), s("variant_id"), s("line_id")];
+}
+
+function rejectDuplicateLineItems(commitment: JsonValue): void {
+  if (commitment === null || typeof commitment !== "object" || Array.isArray(commitment)) return;
+  const items = (commitment as { [key: string]: JsonValue })["line_items"];
+  if (!Array.isArray(items)) return;
+  const seen = new Set<string>();
+  items.forEach((item, i) => {
+    const key = JSON.stringify(lineItemIdentity(item));
+    if (seen.has(key)) {
+      fail(
+        "E_DUPLICATE_LINE_ITEM_KEY",
+        `$.line_items[${i}]`,
+        "line items are not unique on (sku, variant_id, line_id)",
+      );
+    }
+    seen.add(key);
+  });
+}
+
 export const profileV1: CanonicalizationProfile = {
   id: DEFAULT_PROFILE_ID,
   canonicalize(value: unknown): string {
@@ -251,7 +278,9 @@ export const profileV1: CanonicalizationProfile = {
     return hashCanonical(serializePrepared(prepare(value)));
   },
   canonicalCommitment(commitment: unknown): { canonical: string; digest: string } {
-    const canonical = serializePrepared(sortLineItems(prepare(commitment)));
+    const prepared = prepare(commitment);
+    rejectDuplicateLineItems(prepared);
+    const canonical = serializePrepared(sortLineItems(prepared));
     return { canonical, digest: hashCanonical(canonical) };
   },
 };
