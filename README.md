@@ -116,8 +116,8 @@ The TypeScript and Python ports must produce identical output. `examples/canonic
 
 ```
 $ bash scripts/parity.sh
-PASS  typescript: 12 accept + 4 reject vectors, profile mandatepatch/profile/v1
-PASS  python: 12 accept + 4 reject vectors, profile mandatepatch/profile/v1
+PASS  typescript: 13 accept + 4 reject vectors, profile mandatepatch/profile/v1
+PASS  python: 13 accept + 4 reject vectors, profile mandatepatch/profile/v1
 PASS  typescript and python produced byte-identical output
 ```
 
@@ -160,7 +160,7 @@ python3 scripts/validate-commitment-vectors.py # commitment accept vectors again
 bash scripts/parity.sh              # TS and Python vectors, then a byte-for-byte diff
 ```
 
-`.github/workflows/ci.yml` runs all three plus `tsc --noEmit`, `ruff`, and `mypy`.
+`.github/workflows/ci.yml` runs the commands above plus `tsc --noEmit`, `ruff`, and `mypy`.
 
 ## Layout
 
