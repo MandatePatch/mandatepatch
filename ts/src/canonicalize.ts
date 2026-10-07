@@ -211,7 +211,9 @@ export function sortLineItems(value: JsonValue): JsonValue {
       const c = compareUtf16(ka[i], kb[i]);
       if (c !== 0) return c;
     }
-    return 0;
+    // Tie-break: RFC 8785 canonical string of the whole item, compared with
+    // compareUtf16. Not a second ordering rule.
+    return compareUtf16(serializePrepared(a), serializePrepared(b));
   });
   return { ...obj, line_items: sorted };
 }

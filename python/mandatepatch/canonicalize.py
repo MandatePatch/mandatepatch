@@ -229,13 +229,16 @@ def sort_line_items(value: Any) -> Any:
     if not isinstance(items, list):
         return value
 
-    def key_of(item: Any) -> tuple[bytes, bytes, bytes]:
+    def key_of(item: Any) -> tuple[bytes, bytes, bytes, bytes]:
         if not isinstance(item, dict):
-            return (b"", b"", b"")
+            return (b"", b"", b"", b"")
         def s(k: str) -> bytes:
             v = item.get(k)
             return _utf16_key(v) if isinstance(v, str) else b""
-        return (s("sku"), s("variant_id"), s("line_id"))
+        # Tie-break: RFC 8785 canonical string of the whole item, compared with
+        # the same UTF-16 key the triple uses. Not a second ordering rule.
+        canonical = _serialize_prepared(item)
+        return (s("sku"), s("variant_id"), s("line_id"), _utf16_key(canonical))
 
     out = dict(value)
     out["line_items"] = sorted(items, key=key_of)
