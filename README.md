@@ -156,6 +156,7 @@ base_mandate_hash = digest(mandate)
 ```bash
 bash scripts/validate-examples.sh   # ajv, draft 2020-12, every example against its schema
 python3 scripts/validate-schemas.py # positive cases plus 16 mutations that must be rejected
+python3 scripts/validate-commitment-vectors.py # commitment accept vectors against the commitment schema
 bash scripts/parity.sh              # TS and Python vectors, then a byte-for-byte diff
 ```
 
@@ -168,7 +169,7 @@ schemas/    JSON Schema draft 2020-12, one file per artifact
 ts/         TypeScript port: types, canonicalization, vector runner
 python/     Python port: TypedDicts, canonicalization, vector runner
 examples/   one valid instance per schema, plus the shared canonicalization vectors
-scripts/    generators for examples and vectors; the three verification entry points
+scripts/    generators for examples and vectors; the verification entry points
 ```
 
 ## What this is not
