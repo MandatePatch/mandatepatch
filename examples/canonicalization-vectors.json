@@ -455,6 +455,7 @@
       "input": {
         "profile": "mandatepatch/profile/v1",
         "checkout_id": "chk-sort-demo",
+        "attempt_nonce": "bnVsbFZhcmlhbnRTb3J0MQ",
         "created_at": "2026-08-27T00:00:00Z",
         "seller": {
           "seller_id": "seller:demo",
@@ -529,8 +530,8 @@
           "notify_principal": false
         }
       },
-      "expected_jcs": "{\"checkout_id\":\"chk-sort-demo\",\"created_at\":\"2026-08-27T00:00:00Z\",\"currency\":\"USD\",\"currency_minor_unit_exponent\":2,\"fulfillment_source\":{\"kind\":\"digital\",\"location_id\":null,\"marketplace_seller_id\":null},\"line_items\":[{\"fulfillment_source\":{\"kind\":\"digital\",\"location_id\":null,\"marketplace_seller_id\":null},\"line_id\":\"a\",\"quantity\":1,\"sku\":\"SKU-X\",\"title\":\"X\",\"total_amount_minor\":100,\"unit_amount_minor\":100,\"variant_id\":null},{\"fulfillment_source\":{\"kind\":\"digital\",\"location_id\":null,\"marketplace_seller_id\":null},\"line_id\":\"b\",\"quantity\":1,\"sku\":\"SKU-X\",\"title\":\"X, 24-pack\",\"total_amount_minor\":100,\"unit_amount_minor\":100,\"variant_id\":\"24-pack\"}],\"profile\":\"mandatepatch/profile/v1\",\"recurrence\":null,\"seller\":{\"domain\":null,\"legal_name\":\"Demo\",\"merchant_category_code\":null,\"seller_id\":\"seller:demo\"},\"shipping\":{\"amount_minor\":0,\"destination\":{\"address_commitment\":null,\"country\":null,\"postal_code\":null,\"region\":null},\"method\":null},\"substitution_policy\":{\"allowed_substitutions\":[],\"max_unit_amount_delta_minor\":null,\"mode\":\"none\",\"notify_principal\":false},\"tax\":{\"components\":[],\"inclusive\":false,\"total_amount_minor\":0},\"totals\":{\"discount_minor\":0,\"grand_total_minor\":200,\"shipping_minor\":0,\"subtotal_minor\":200,\"tax_minor\":0}}",
-      "expected_digest": "sha-256:Fzcc2lD616qjDqFDM0Qbf1a-r-7x8qd85LF4zbb-YZI"
+      "expected_jcs": "{\"attempt_nonce\":\"bnVsbFZhcmlhbnRTb3J0MQ\",\"checkout_id\":\"chk-sort-demo\",\"created_at\":\"2026-08-27T00:00:00Z\",\"currency\":\"USD\",\"currency_minor_unit_exponent\":2,\"fulfillment_source\":{\"kind\":\"digital\",\"location_id\":null,\"marketplace_seller_id\":null},\"line_items\":[{\"fulfillment_source\":{\"kind\":\"digital\",\"location_id\":null,\"marketplace_seller_id\":null},\"line_id\":\"a\",\"quantity\":1,\"sku\":\"SKU-X\",\"title\":\"X\",\"total_amount_minor\":100,\"unit_amount_minor\":100,\"variant_id\":null},{\"fulfillment_source\":{\"kind\":\"digital\",\"location_id\":null,\"marketplace_seller_id\":null},\"line_id\":\"b\",\"quantity\":1,\"sku\":\"SKU-X\",\"title\":\"X, 24-pack\",\"total_amount_minor\":100,\"unit_amount_minor\":100,\"variant_id\":\"24-pack\"}],\"profile\":\"mandatepatch/profile/v1\",\"recurrence\":null,\"seller\":{\"domain\":null,\"legal_name\":\"Demo\",\"merchant_category_code\":null,\"seller_id\":\"seller:demo\"},\"shipping\":{\"amount_minor\":0,\"destination\":{\"address_commitment\":null,\"country\":null,\"postal_code\":null,\"region\":null},\"method\":null},\"substitution_policy\":{\"allowed_substitutions\":[],\"max_unit_amount_delta_minor\":null,\"mode\":\"none\",\"notify_principal\":false},\"tax\":{\"components\":[],\"inclusive\":false,\"total_amount_minor\":0},\"totals\":{\"discount_minor\":0,\"grand_total_minor\":200,\"shipping_minor\":0,\"subtotal_minor\":200,\"tax_minor\":0}}",
+      "expected_digest": "sha-256:E2w5sYGBexx9967NkSlP6xTq0cK01qweAn_8yZZ6lns"
     }
   ],
   "rejects": [
