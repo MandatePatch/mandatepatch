@@ -13,10 +13,30 @@ same failure mode that withdrew v0.1.1.
   checker that CI never invokes is not a check.
 - `ts/package.json` repository URL case corrected to `MandatePatch/mandatepatch`.
   No version export exists in `ts/src`; a fourth source was not invented.
+- `commitment-variant-null-sorts-first` omitted `attempt_nonce`, which the
+  commitment schema requires. The accept vector was amended to carry one. The
+  expected canonical string and digest were written only after the Python and
+  TypeScript ports produced the same bytes for that input. Taking them from one
+  runner would have made the vector a tautology, the failure mode that withdrew
+  v0.1.1.
+- `scripts/validate-commitment-vectors.py` validates every accept vector whose
+  `mode` is `commitment` against `canonical-commitment.schema.json`. The schema
+  job runs it. The discriminator is the `mode` field already in the file, not a
+  list of names. Run against the file before the amendment, it printed
+  `FAIL commitment-variant-null-sorts-first` and `'attempt_nonce' is a required
+  property`.
+- Stated figures in the README did not track the suite. The mutation count said
+  fifteen, then the accept-vector count said 12, and the verifying sentence said
+  the workflow runs three commands after a fourth had been added. Those were
+  corrected. A sweep of numeric claims in `README.md` and `CHANGELOG.md` measured
+  each against the tree: vector-file lengths, schema and example file counts,
+  the mutation labels returned by `mutations()`, and the runner pass lines.
+  Historical entries below were not rewritten.
 
-**Parity digest:** `b9b75ff31b16a016c947c714f1c7d9f664e623d6668be3799f5a72527933a0e4`
-- unchanged from v0.1.2 / v0.1.3. Canonicalization, schemas, vectors, and
-  examples were not touched.
+**Parity digest:** `a605c4ce8cef91a0cc8174aa0f48aff273cc7bc14879babbd71edb1296186dbe`
+- supersedes `b9b75ff31b16a016c947c714f1c7d9f664e623d6668be3799f5a72527933a0e4`.
+  The earlier digest is the pre-amendment vector file. Both ports emitted the
+  same file at this digest.
 
 ## v0.1.3 — CI reproducibility (2026-08-28)
 
