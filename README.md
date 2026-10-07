@@ -54,7 +54,7 @@ Not expressible, and therefore documented rather than enforced — a verifier st
 - The base mandate is locked against new authorization requests while any patch is pending.
 - Supersession voids unconsumed patches against superseded versions.
 
-`scripts/validate-schemas.py` checks the enforced ones with fifteen deliberate mutations that must be rejected.
+`scripts/validate-schemas.py` checks the enforced ones with sixteen deliberate mutations that must be rejected.
 
 ## Signature envelope
 
@@ -155,7 +155,7 @@ base_mandate_hash = digest(mandate)
 
 ```bash
 bash scripts/validate-examples.sh   # ajv, draft 2020-12, every example against its schema
-python3 scripts/validate-schemas.py # positive cases plus 15 mutations that must be rejected
+python3 scripts/validate-schemas.py # positive cases plus 16 mutations that must be rejected
 bash scripts/parity.sh              # TS and Python vectors, then a byte-for-byte diff
 ```
 
