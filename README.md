@@ -112,12 +112,12 @@ Every one is marked `PROFILE-DEFINED:` in the source or schema text. `v1` takes 
 
 ### Byte-identity
 
-The TypeScript and Python ports must produce identical output. `examples/canonicalization-vectors.json` is the shared vector file — 13 accept vectors and 4 reject vectors, including UTF-16 versus code-point key ordering above the BMP, NFC normalization, JCS escaping, integer edge cases, and line-item reordering. Both CI jobs check against the frozen expected values, and a third job diffs the two ports' computed output directly.
+The TypeScript and Python ports must produce identical output. `examples/canonicalization-vectors.json` is the shared vector file — 13 accept vectors and 5 reject vectors, including UTF-16 versus code-point key ordering above the BMP, NFC normalization, JCS escaping, integer edge cases, and line-item reordering. Both CI jobs check against the frozen expected values, and a third job diffs the two ports' computed output directly.
 
 ```
 $ bash scripts/parity.sh
-PASS  typescript: 13 accept + 4 reject vectors, profile mandatepatch/profile/v1
-PASS  python: 13 accept + 4 reject vectors, profile mandatepatch/profile/v1
+PASS  typescript: 13 accept + 5 reject vectors, profile mandatepatch/profile/v1
+PASS  python: 13 accept + 5 reject vectors, profile mandatepatch/profile/v1
 PASS  typescript and python produced byte-identical output
 ```
 
