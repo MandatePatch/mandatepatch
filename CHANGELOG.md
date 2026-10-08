@@ -33,18 +33,32 @@ same failure mode that withdrew v0.1.1.
   the mutation labels returned by `mutations()`, and the runner pass lines.
   Historical entries below were not rewritten.
 
+**Parity digest:** `a605c4ce8cef91a0cc8174aa0f48aff273cc7bc14879babbd71edb1296186dbe`
+- measured at the tagged commit. Both ports emitted the same file. Supersedes
+  `b9b75ff31b16a016c947c714f1c7d9f664e623d6668be3799f5a72527933a0e4`.
+
+## v0.1.5 — line-item order is total (2026-10-08)
+
+A tie on `(sku, variant_id, line_id)` kept input order, so two parties hashing
+the same cart could differ. That does not satisfy §4.3's byte-identical
+requirement. Profile v1 is changed in place. A commitment computed before this
+change may differ from one computed after, for a cart with tied line items.
+
+- All three sources now declare `0.1.5`. The count guard compares vector counts
+  only; it does not read these strings.
+- A tie is broken on the RFC 8785 canonical string of the whole item, compared
+  with the existing UTF-16 key. `canonical_commitment` rejects two items with
+  the same triple before the sort, code `E_DUPLICATE_LINE_ITEM_KEY`. The
+  tie-break is reached by calling `sort_line_items` / `sortLineItems` directly;
+  both ports have a test that does so, in both input orders, and CI runs it.
+- The README vector counts said 4 reject after a fifth was added.
+  `scripts/check-vector-counts.py` reads the counts from the vector file and
+  fails the build when the README disagrees. The sort-rule cell names which
+  path rejects and which path breaks the tie.
+
 **Parity digest:** `bf3702aeffab88647d5f2d5a45e0b5971285891e59fba305e5d493989d8f05dd`
 - supersedes `a605c4ce8cef91a0cc8174aa0f48aff273cc7bc14879babbd71edb1296186dbe`.
   Both ports emitted the same file at this digest.
-- Profile v1 line-item ordering changed. A tie on `(sku, variant_id, line_id)`
-  previously kept input order, so two parties could hash the same cart to
-  different commitments. A commitment computed before this change may differ
-  from one computed after, for a cart with tied line items. The tie is now
-  broken on the RFC 8785 canonical string of the item, compared with the
-  existing UTF-16 key. A commitment whose line items are not unique on that
-  triple is rejected with `E_DUPLICATE_LINE_ITEM_KEY`. This is a behaviour
-  change, recorded because the previous ordering did not satisfy §4.3's
-  byte-identical requirement.
 
 ## v0.1.3 — CI reproducibility (2026-08-28)
 
