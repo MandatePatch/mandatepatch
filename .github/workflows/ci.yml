@@ -71,6 +71,10 @@ jobs:
           node dist/test/run-vectors.js
         working-directory: ts
 
+      - name: line-item tie-break, called directly
+        run: node dist/test/sort-tiebreak.js
+        working-directory: ts
+
       - name: emit computed output for the parity job
         run: node ts/dist/test/run-vectors.js --emit ts-vectors.json
 
@@ -103,6 +107,9 @@ jobs:
 
       - name: canonicalization vectors
         run: python3 python/tests/run_vectors.py
+
+      - name: line-item tie-break, called directly
+        run: python3 python/tests/test_sort_tiebreak.py
 
       - name: emit computed output for the parity job
         run: python3 python/tests/run_vectors.py --emit py-vectors.json
