@@ -443,7 +443,7 @@
     "attempt_nonce": {
       "type": "string",
       "pattern": "^[A-Za-z0-9_-]{22,}$",
-      "description": "§4.3 (v2.3 erratum). Per-attempt distinguisher: a value unique to each checkout attempt (>=128 bits, base64url, no padding). Distinct from checkout_id: platform checkout/session identifiers persist across cart mutations; the attempt nonce does not. Without it, two byte-identical carts produce identical commitments, defeating duplicate detection and §6.1's voiding against re-presentation of a stale attempt.",
+      "description": "§4.3 (v2.3 erratum). Per-attempt distinguisher: a value unique to each checkout attempt (>=128 bits, base64url, no padding). Distinct from checkout_id: platform checkout/session identifiers persist across cart mutations; the attempt nonce does not. Without it, two byte-identical carts produce identical commitments, defeating duplicate detection and §6.1's voiding against re-presentation of a stale attempt. Enters the commitment hash and is excluded from the §3.1 scoring input (errata E-3, https://driftlayer.org/specification/): the semantic distance is computed over the purchase-describing fields as a structured object, not over this value, profile, checkout_id or created_at.",
       "$comment": "PROFILE-DEFINED: entropy source. Profile v1 requires 16 random bytes, base64url without padding (22 chars)."
     }
   },

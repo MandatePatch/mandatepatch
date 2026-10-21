@@ -1,3 +1,9 @@
+## Unreleased
+- `canonical-commitment.schema.json`: the `attempt_nonce` description now states that the
+  nonce enters the commitment hash and is excluded from the §3.1 scoring input, tracking
+  errata E-3 at https://driftlayer.org/specification/. Description text only; no artifact,
+  schema shape, vector or canonicalization behavior changed.
+
 ## v0.1.4 — version-string invariant observed in CI (2026-08-28)
 
 `python/mandatepatch/__init__.py` declared `__version__ = "0.0.1"` while
