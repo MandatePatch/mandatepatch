@@ -1,4 +1,5 @@
 {
+  "binding_profile": "ap2/v0.2",
   "base_mandate_hash": "sha-256:H8h7wRzfADzgLqv3t8mSI-nlZ1mAJ3hosUETgucrT4U",
   "patch_sequence": 1,
   "violations": [
@@ -16,7 +17,7 @@
   ],
   "checkout_commitment": "sha-256:kEHS9w4GR7KawjUuVmYWbH2Ng3cVWyaVFEyoSf9aA80",
   "suspended_state_hash": "sha-256:tles22KJNOctGVKTOJ9TiVAtnxMS3hzLLAzkzGFo2Bw",
-  "divergence_record_ref": "sha-256:9y6pxW56mDNG8LtxsUvn1rZwbvebeh1BThusQneFIkA",
+  "divergence_record_ref": "sha-256:VkxnZ_hibuOTbE7tSp-51LpGtw6012tIfYrMgFTi-Ac",
   "nonce": "n-4f2b9c1e7a6d0835",
   "issued_at": "2026-08-27T14:06:40Z",
   "expiry": "2026-08-27T14:21:40Z",

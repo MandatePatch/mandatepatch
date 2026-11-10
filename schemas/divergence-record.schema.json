@@ -6,6 +6,7 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
+    "binding_profile",
     "schema_version",
     "record_id",
     "mandate_family_id",
@@ -32,6 +33,12 @@
     "signature"
   ],
   "properties": {
+    "binding_profile": {
+      "type": "string",
+      "description": "§9: 'Bindings for AP2, Verifiable Intent, and ACP are sketched in the artifact archive published alongside this disclosure.' Identifier of the mandate format this artifact binds to. PROFILE-DEFINED.",
+      "examples": ["ap2/v0.2", "verifiable-intent/v0.1", "acp"]
+    },
+
     "schema_version": { "const": "mandatepatch/divergence-record/v1", "description": "Schema discriminator for this artifact." },
     "record_id": { "type": "string", "minLength": 1, "description": "Identifier of this record within the mandate's lineage." },
     "mandate_family_id": { "type": "string", "minLength": 1, "description": "§5.3. The family whose lineage this record is appended to." },

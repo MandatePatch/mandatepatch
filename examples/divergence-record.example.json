@@ -1,5 +1,6 @@
 {
   "schema_version": "mandatepatch/divergence-record/v1",
+  "binding_profile": "ap2/v0.2",
   "record_id": "dr:2026-W35-northside-0417-1",
   "mandate_family_id": "fam:weekly-groceries-8f21",
   "mandate_version": 1,

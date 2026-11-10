@@ -319,6 +319,7 @@ class DivergenceRecord(TypedDict):
     """3.1: 'every evaluation emits a signed divergence record ... appended to the mandate's lineage'."""
 
     schema_version: Literal["mandatepatch/divergence-record/v1"]
+    binding_profile: str
     record_id: str
     mandate_family_id: str
     mandate_version: int
@@ -364,6 +365,7 @@ class Violation(TypedDict):
 class MandatePatch(TypedDict):
     """4.2, field for field. No field is added and none is omitted."""
 
+    binding_profile: str
     #: "the mandate version being patched" - never another patch; patch-of-patch is prohibited.
     base_mandate_hash: Hash
     #: "monotonic within the mandate"
@@ -428,6 +430,7 @@ class SupersessionRecord(TypedDict):
     """5: 'Durable change is exclusively Section 5 supersession' (4.1)."""
 
     schema_version: Literal["mandatepatch/supersession-record/v1"]
+    binding_profile: str
     record_id: str
     mandate_family_id: str
     action: Literal["supersede", "revoke"]
