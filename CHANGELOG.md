@@ -1,8 +1,4 @@
 ## Unreleased
-- `canonical-commitment.schema.json`: the `attempt_nonce` description now states that the
-  nonce enters the commitment hash and is excluded from the §3.1 scoring input, tracking
-  errata E-3 at https://driftlayer.org/specification/. Description text only; no artifact,
-  schema shape, vector or canonicalization behavior changed.
 
 ## v0.1.6 — initiation evidence element (2026-11-10)
 
@@ -24,8 +20,47 @@ initiation complete (method + initiated_at), and initiation with method but
 no initiated_at. A mutation rejecting an initiation object missing method
 was added; the suite now rejects 17 mutations.
 
-The served copy of this schema must be published to MandatePatch/mandatepatch.org
-before this release merges, so that the $id publication check remains green.
+The served copy of this schema was published to MandatePatch/mandatepatch.org
+(site commit `3cec85b2`, 2026-11-10) before the code change merged
+(`bb2012a8`). The `$id` publication check is green on all five schemas.
+
+Also in this release: the `attempt_nonce` description on
+`canonical-commitment.schema.json` now states that the nonce enters the
+commitment hash and is excluded from the §3.1 scoring input, tracking
+errata E-3 at https://driftlayer.org/specification/. Description text only;
+no artifact, schema shape, vector or canonicalization behavior changed.
+That description change shipped in commit `cf57284a` (2026-10-21); its
+unpublished served copy held the schema-validation job red for twenty days
+until the site was updated.
+
+
+**Parity digest:** `bf3702aeffab88647d5f2d5a45e0b5971285891e59fba305e5d493989d8f05dd`
+- unchanged from v0.1.5. Both ports emitted the same file. Adding the
+  optional `initiation` object moves no vector: canonicalization is driven
+  by the instance keys, not the schema.
+
+## v0.1.5 — line-item order is total (2026-10-08)
+
+A tie on `(sku, variant_id, line_id)` kept input order, so two parties hashing
+the same cart could differ. That does not satisfy §4.3's byte-identical
+requirement. Profile v1 is changed in place. A commitment computed before this
+change may differ from one computed after, for a cart with tied line items.
+
+- All three sources now declare `0.1.5`. The count guard compares vector counts
+  only; it does not read these strings.
+- A tie is broken on the RFC 8785 canonical string of the whole item, compared
+  with the existing UTF-16 key. `canonical_commitment` rejects two items with
+  the same triple before the sort, code `E_DUPLICATE_LINE_ITEM_KEY`. The
+  tie-break is reached by calling `sort_line_items` / `sortLineItems` directly;
+  both ports have a test that does so, in both input orders, and CI runs it.
+- The README vector counts said 4 reject after a fifth was added.
+  `scripts/check-vector-counts.py` reads the counts from the vector file and
+  fails the build when the README disagrees. The sort-rule cell names which
+  path rejects and which path breaks the tie.
+
+**Parity digest:** `bf3702aeffab88647d5f2d5a45e0b5971285891e59fba305e5d493989d8f05dd`
+- supersedes `a605c4ce8cef91a0cc8174aa0f48aff273cc7bc14879babbd71edb1296186dbe`.
+  Both ports emitted the same file at this digest.
 
 ## v0.1.4 — version-string invariant observed in CI (2026-08-28)
 
@@ -65,29 +100,6 @@ same failure mode that withdrew v0.1.1.
 **Parity digest:** `a605c4ce8cef91a0cc8174aa0f48aff273cc7bc14879babbd71edb1296186dbe`
 - measured at the tagged commit. Both ports emitted the same file. Supersedes
   `b9b75ff31b16a016c947c714f1c7d9f664e623d6668be3799f5a72527933a0e4`.
-
-## v0.1.5 — line-item order is total (2026-10-08)
-
-A tie on `(sku, variant_id, line_id)` kept input order, so two parties hashing
-the same cart could differ. That does not satisfy §4.3's byte-identical
-requirement. Profile v1 is changed in place. A commitment computed before this
-change may differ from one computed after, for a cart with tied line items.
-
-- All three sources now declare `0.1.5`. The count guard compares vector counts
-  only; it does not read these strings.
-- A tie is broken on the RFC 8785 canonical string of the whole item, compared
-  with the existing UTF-16 key. `canonical_commitment` rejects two items with
-  the same triple before the sort, code `E_DUPLICATE_LINE_ITEM_KEY`. The
-  tie-break is reached by calling `sort_line_items` / `sortLineItems` directly;
-  both ports have a test that does so, in both input orders, and CI runs it.
-- The README vector counts said 4 reject after a fifth was added.
-  `scripts/check-vector-counts.py` reads the counts from the vector file and
-  fails the build when the README disagrees. The sort-rule cell names which
-  path rejects and which path breaks the tie.
-
-**Parity digest:** `bf3702aeffab88647d5f2d5a45e0b5971285891e59fba305e5d493989d8f05dd`
-- supersedes `a605c4ce8cef91a0cc8174aa0f48aff273cc7bc14879babbd71edb1296186dbe`.
-  Both ports emitted the same file at this digest.
 
 ## v0.1.3 — CI reproducibility (2026-08-28)
 
