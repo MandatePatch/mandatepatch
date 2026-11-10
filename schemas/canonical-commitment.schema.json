@@ -445,6 +445,40 @@
       "pattern": "^[A-Za-z0-9_-]{22,}$",
       "description": "§4.3 (v2.3 erratum). Per-attempt distinguisher: a value unique to each checkout attempt (>=128 bits, base64url, no padding). Distinct from checkout_id: platform checkout/session identifiers persist across cart mutations; the attempt nonce does not. Without it, two byte-identical carts produce identical commitments, defeating duplicate detection and §6.1's voiding against re-presentation of a stale attempt. Enters the commitment hash and is excluded from the §3.1 scoring input (errata E-3, https://driftlayer.org/specification/): the semantic distance is computed over the purchase-describing fields as a structured object, not over this value, profile, checkout_id or created_at.",
       "$comment": "PROFILE-DEFINED: entropy source. Profile v1 requires 16 random bytes, base64url without padding (22 chars)."
+    },
+    "initiation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method"
+      ],
+      "description": "How the authorization transaction was initiated, and optionally when. OPTIONAL at the commitment level: a record that omits this object remains valid. The published measurement treats a missing initiation element as not_evaluable (not a fail; the record stays in the denominator). A schema that rejected the omission would make the measure unable to count the thing it exists to count.",
+      "$comment": "PROFILE-DEFINED: a signed attestation form for the evidence members is deliberately unspecified at this edition.",
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": [
+            "agent",
+            "human",
+            "scheduled",
+            "api"
+          ],
+          "description": "How the transaction was initiated. `agent` is the population evaluation coverage is counted over. PROFILE-DEFINED: a profile may extend this set and must publish its extension."
+        },
+        "initiated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Optional. Instant the transaction was initiated. Deliberately optional: a record may know the method and not the time, and that case is reported as not_evaluable by the measure rather than rejected by the schema."
+        },
+        "evidence_ref": {
+          "type": "string",
+          "description": "Optional. Reference to an artifact attesting the initiation. Reserved now so that adding evidence later is not a breaking change. Nothing yet produces this value."
+        },
+        "evidence_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Optional. Digest of the artifact referenced by evidence_ref. Reuses the house hash definition. Reserved now so that adding evidence later is not a breaking change."
+        }
+      }
     }
   },
   "$defs": {
@@ -494,6 +528,11 @@
           "description": "Marketplace seller of record, or explicit null."
         }
       }
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^sha-256:[A-Za-z0-9_-]{43}$",
+      "description": "PROFILE-DEFINED hash encoding. Profile v1: SHA-256 over the JCS (RFC 8785) serialization, base64url without padding, prefixed with the algorithm name."
     }
   }
 }

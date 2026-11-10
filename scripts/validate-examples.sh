@@ -6,6 +6,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 pairs=(
   "canonical-commitment.schema.json:canonical-commitment.example.json"
+  "canonical-commitment.schema.json:canonical-commitment-initiation-complete.example.json"
+  "canonical-commitment.schema.json:canonical-commitment-initiation-method-only.example.json"
   "mandate.schema.json:mandate.example.json"
   "mandate-patch.schema.json:mandate-patch.example.json"
   "divergence-record.schema.json:divergence-record.example.json"
