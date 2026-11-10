@@ -6,6 +6,7 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
+    "binding_profile",
     "base_mandate_hash",
     "patch_sequence",
     "violations",
@@ -18,6 +19,12 @@
     "human_signature"
   ],
   "properties": {
+    "binding_profile": {
+      "type": "string",
+      "description": "§9: 'Bindings for AP2, Verifiable Intent, and ACP are sketched in the artifact archive published alongside this disclosure.' Identifier of the mandate format this artifact binds to. PROFILE-DEFINED.",
+      "examples": ["ap2/v0.2", "verifiable-intent/v0.1", "acp"]
+    },
+
     "base_mandate_hash": {
       "$ref": "#/$defs/hash",
       "description": "§4.2, 'the mandate version being patched'. Hash of the specific mandate version, not the family: §5.1 states that 'supersession voids unconsumed patches against superseded versions'. §4.2: 'Patch-of-patch is prohibited' — this field MUST reference a mandate, never another MandatePatch."

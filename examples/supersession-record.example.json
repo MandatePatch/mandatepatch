@@ -1,5 +1,6 @@
 {
   "schema_version": "mandatepatch/supersession-record/v1",
+  "binding_profile": "ap2/v0.2",
   "record_id": "sr:fam-weekly-groceries-8f21-epoch2",
   "mandate_family_id": "fam:weekly-groceries-8f21",
   "action": "supersede",

@@ -256,6 +256,7 @@ export interface Predicate {
 /** §3.1: "every evaluation emits a signed divergence record ... appended to the mandate's lineage". */
 export interface DivergenceRecord {
   schema_version: "mandatepatch/divergence-record/v1";
+  binding_profile: string;
   record_id: string;
   mandate_family_id: string;
   mandate_version: number;
@@ -306,6 +307,8 @@ export interface Violation {
 
 /** §4.2, field for field. No field is added and none is omitted. */
 export interface MandatePatch {
+  /** Identifier of the mandate format this artifact binds to. PROFILE-DEFINED. */
+  binding_profile: string;
   /** "the mandate version being patched" - never another patch; patch-of-patch is prohibited. */
   base_mandate_hash: Hash;
   /** "monotonic within the mandate" */
@@ -337,6 +340,7 @@ export interface MandatePatch {
 /** §5: "Durable change is exclusively Section 5 supersession" (§4.1). */
 export interface SupersessionRecord {
   schema_version: "mandatepatch/supersession-record/v1";
+  binding_profile: string;
   record_id: string;
   mandate_family_id: string;
   action: "supersede" | "revoke";

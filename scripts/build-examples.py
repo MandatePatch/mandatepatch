@@ -55,8 +55,9 @@ def _b64u(raw):
     return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
 
 
-def ds_tag(sep, binding_profile=BINDING_PROFILE):
-    """6.2 domain-separation tag, computed for real from the components beside it.
+def ds_tag(sep, binding_profile):
+    """6.2 domain-separation tag, computed from the six domain_separation members
+    plus the binding_profile of the artifact being built.
 
     PROFILE-DEFINED, DECIDED: profile v1 carries this tag in the JSON body AND
     requires it to byte-equal the separator bound into the carrier's signed input
@@ -434,7 +435,7 @@ mandate = {
         "authenticator": AUTHENTICATOR,
         "assurance_profile": "aal2-device-bound-independent-channel",
         "domain_separation": MANDATE_SEP,
-        "ds_tag": ds_tag(MANDATE_SEP),
+        "ds_tag": ds_tag(MANDATE_SEP, BINDING_PROFILE),
         "signature": "PLACEHOLDER-not-a-real-signature-mandate-v1",
     },
 }
@@ -445,6 +446,7 @@ base_mandate_hash = digest(mandate)
 
 divergence = {
     "schema_version": "mandatepatch/divergence-record/v1",
+    "binding_profile": BINDING_PROFILE,
     "record_id": "dr:2026-W35-northside-0417-1",
     "mandate_family_id": "fam:weekly-groceries-8f21",
     "mandate_version": 1,
@@ -482,7 +484,7 @@ divergence = {
         "signer": "wallet.example",
         "signer_role": "wallet",
         "domain_separation": DIVERGENCE_SEP,
-        "ds_tag": ds_tag(DIVERGENCE_SEP),
+        "ds_tag": ds_tag(DIVERGENCE_SEP, BINDING_PROFILE),
         "anchor": anchor("divergence-record", 1),
         "signature": "PLACEHOLDER-not-a-real-signature-divergence-record",
     },
@@ -493,6 +495,7 @@ divergence_record_ref = digest(divergence)
 # ------------------------------------------------------------------ 4 ----
 
 patch = {
+    "binding_profile": BINDING_PROFILE,
     "base_mandate_hash": base_mandate_hash,
     "patch_sequence": 1,
     "violations": [
@@ -517,7 +520,7 @@ patch = {
         "authenticator": AUTHENTICATOR,
         "assurance_profile": "aal2-device-bound-independent-channel",
         "domain_separation": DOMAIN_SEP,
-        "ds_tag": ds_tag(DOMAIN_SEP),
+        "ds_tag": ds_tag(DOMAIN_SEP, BINDING_PROFILE),
         "anchor": anchor("mandate-patch-seq1", 1),
         "signature": "PLACEHOLDER-not-a-real-signature-mandatepatch-seq1",
     },
@@ -528,6 +531,7 @@ write("mandate-patch.example.json", patch)
 
 supersession = {
     "schema_version": "mandatepatch/supersession-record/v1",
+    "binding_profile": BINDING_PROFILE,
     "record_id": "sr:fam-weekly-groceries-8f21-epoch2",
     "mandate_family_id": "fam:weekly-groceries-8f21",
     "action": "supersede",
@@ -580,7 +584,7 @@ supersession = {
         "authenticator": AUTHENTICATOR,
         "assurance_profile": "aal2-device-bound-independent-channel",
         "domain_separation": SUPERSESSION_SEP,
-        "ds_tag": ds_tag(SUPERSESSION_SEP),
+        "ds_tag": ds_tag(SUPERSESSION_SEP, BINDING_PROFILE),
         "signature": "PLACEHOLDER-not-a-real-signature-supersession-epoch2",
     },
 }
@@ -591,4 +595,4 @@ print(f"  base_mandate_hash    = {base_mandate_hash}")
 print(f"  divergence_record_ref= {divergence_record_ref}")
 print(f"  principal kid        = {PRINCIPAL_KID}")
 print(f"  wallet scorer kid    = {WALLET_SCORER_KID}")
-print(f"  ds_tag (patch)       = {ds_tag(DOMAIN_SEP)}")
+print(f"  ds_tag (patch)       = {ds_tag(DOMAIN_SEP, BINDING_PROFILE)}")

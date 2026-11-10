@@ -1,5 +1,18 @@
 ## Unreleased
 
+- `mandate-patch.schema.json`, `divergence-record.schema.json`,
+  `supersession-record.schema.json`: add top-level `binding_profile` (required),
+  matching the declaration on `mandate.schema.json`. The §6.2 `ds_tag`
+  derivation takes seven length-prefixed inputs; six live in
+  `domain_separation` and the seventh (`binding_profile`) did not. A signed
+  artifact can now recompute its own `ds_tag` from the file alone. This is a
+  required-member addition (breaking for instances that lack the field);
+  recorded as v0.1.7. `scripts/build-examples.py` no longer defaults the
+  seventh input from a module constant — the value is passed from the object
+  being built. A new check (`scripts/check-ds-tag-recomputable.py`) asserts
+  recomputability for the four signed-artifact examples and is wired into the
+  schema validation job. The four published `ds_tag` values are unchanged.
+
 ## v0.1.6 — initiation evidence element (2026-11-10)
 
 Optional `initiation` object added to `canonical-commitment.schema.json`.
@@ -32,7 +45,6 @@ no artifact, schema shape, vector or canonicalization behavior changed.
 That description change shipped in commit `cf57284a` (2026-10-21); its
 unpublished served copy held the schema-validation job red for twenty days
 until the site was updated.
-
 
 **Parity digest:** `bf3702aeffab88647d5f2d5a45e0b5971285891e59fba305e5d493989d8f05dd`
 - unchanged from v0.1.5. Both ports emitted the same file. Adding the
