@@ -4,6 +4,29 @@
   errata E-3 at https://driftlayer.org/specification/. Description text only; no artifact,
   schema shape, vector or canonicalization behavior changed.
 
+## v0.1.6 — initiation evidence element (2026-11-10)
+
+Optional `initiation` object added to `canonical-commitment.schema.json`.
+The object is not in the top-level `required` array, so a record that omits
+it remains valid. Inside the object, `method` is required (enum: agent,
+human, scheduled, api; `agent` is the population evaluation coverage is
+counted over; PROFILE-DEFINED: a profile may extend the set and must publish
+its extension). `initiated_at` is deliberately optional (date-time): a record
+may know the method and not the time, and that case is reported as
+not_evaluable by the measure rather than rejected by the schema. Two evidence
+members (`evidence_ref`, `evidence_digest`) are declared now (the latter
+reusing the house hash definition) so that adding evidence later is not a
+breaking change; a signed attestation form is deliberately unspecified at
+this edition (PROFILE-DEFINED $comment).
+
+Examples exercise three states: initiation absent (existing example, untouched),
+initiation complete (method + initiated_at), and initiation with method but
+no initiated_at. A mutation rejecting an initiation object missing method
+was added; the suite now rejects 17 mutations.
+
+The served copy of this schema must be published to MandatePatch/mandatepatch.org
+before this release merges, so that the $id publication check remains green.
+
 ## v0.1.4 — version-string invariant observed in CI (2026-08-28)
 
 `python/mandatepatch/__init__.py` declared `__version__ = "0.0.1"` while

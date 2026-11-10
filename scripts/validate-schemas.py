@@ -19,6 +19,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 PAIRS = [
     ("canonical-commitment.schema.json", "canonical-commitment.example.json"),
+    ("canonical-commitment.schema.json", "canonical-commitment-initiation-complete.example.json"),
+    ("canonical-commitment.schema.json", "canonical-commitment-initiation-method-only.example.json"),
     ("mandate.schema.json", "mandate.example.json"),
     ("mandate-patch.schema.json", "mandate-patch.example.json"),
     ("divergence-record.schema.json", "divergence-record.example.json"),
@@ -99,6 +101,9 @@ def mutations():
     m15 = copy.deepcopy(supersession)
     del m15["human_signature"]["ds_tag"]
 
+
+    m17 = copy.deepcopy(commitment)
+    m17["initiation"] = {"initiated_at": "2026-08-27T14:01:55Z"}  # missing required method
     return [
         ("patch-missing-nonce", "mandate-patch.schema.json", m1,
          "4.2 lists nonce among the fields entering the signed transcript"),
@@ -135,6 +140,8 @@ def mutations():
         ("signature-missing-ds-tag", "supersession-record.schema.json", m15,
          "6.2: an envelope with separator components but no tag is exactly the "
          "ambiguity the transplant attack needs in order to succeed"),
+        ("commitment-initiation-missing-method", "canonical-commitment.schema.json", m17,
+         "initiation object must contain method; the measure treats missing method as not_evaluable only when the object is absent, not when it is present but incomplete"),
         ("commitment-missing-attempt-nonce", "canonical-commitment.schema.json", m16,
          "4.3 v2.3 erratum: without the per-attempt distinguisher, two presentations of an "
          "unchanged cart under one checkout_id commit to the same bytes - the re-presentation "
