@@ -488,8 +488,7 @@
           "type": "null"
         },
         {
-          "type": "string",
-          "pattern": "^sha-256:[A-Za-z0-9_-]{43}$"
+          "$ref": "#/$defs/hash"
         }
       ],
       "description": "PROFILE-DEFINED hash encoding. Profile v1: SHA-256 over the JCS (RFC 8785) serialization, base64url without padding, prefixed with the algorithm name."
