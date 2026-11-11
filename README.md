@@ -185,3 +185,13 @@ scripts/    generators for examples and vectors; the verification entry points
 > Matt Kirby, "Mandate Lifecycle Extensions for Agentic Payment Credentials", Technical Disclosure Commons, Defensive Publications Series #11517, August 2026. https://www.tdcommons.org/dpubs_series/11517
 
 The disclosure was published to keep this layer open. Its own words: "the lifecycle of a payment mandate — its drift, its amendment, its supersession, and its proof — should be common infrastructure, not a chokepoint."
+
+## Related publications
+
+The papers that measure whether software spending money stayed inside the authority given are published at [The Drift Layer](https://driftlayer.org/).
+
+- [Four Measures for Mandate Conformance](https://driftlayer.org/papers/definitions/) — the measurement vocabulary
+- [The Drift Layer: the clean, fast session that is not proof of authority](https://driftlayer.org/papers/the-drift-layer/)
+- [A liability rule aimed at the wrong control](https://driftlayer.org/papers/liability-rule/)
+- [The Link Between Consent and the Change](https://driftlayer.org/papers/consent-and-change/)
+- Full archive: [driftlayer.org/papers/](https://driftlayer.org/papers/)
